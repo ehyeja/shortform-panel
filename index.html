@@ -406,7 +406,13 @@ async function loadClips(){
   try {
     let list = [];
     try { list = await gh(`/contents/media?ref=${BR}&t=${Date.now()}`); } catch (e) { if (!/찾을 수 없/.test(e.message)) throw e; }
-    clips = (Array.isArray(list) ? list : []).filter(f => f.type === "file").sort((a, b) => b.name.localeCompare(a.name));
+    const groups = {};
+    (Array.isArray(list) ? list : []).filter(f => f.type === "file").forEach(f => {
+      const base = f.name.replace(/\.p\d{3}$/, "");
+      (groups[base] = groups[base] || { name: base, size: 0, paths: [] });
+      groups[base].size += f.size; groups[base].paths.push(f.name);
+    });
+    clips = Object.values(groups).sort((a, b) => b.name.localeCompare(a.name));
     picked = picked.filter(n => clips.some(c => c.name === n));
     drawClips();
   } catch (e) { $("clips").innerHTML = `<div class="mini" style="color:var(--warn)">${esc(e.message)}</div>`; }
@@ -436,24 +442,60 @@ function safeName(f, i){
   const ext = (f.name.match(/\.[A-Za-z0-9]{2,4}$/) || [".mp4"])[0].toLowerCase();
   return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}-${i + 1}${ext}`;
 }
+// 올리기 진행률을 보여주는 업로드 (fetch는 진행률을 못 보여줘서 XHR 사용)
+function postBlob(b64, onProg){
+  return new Promise((ok, bad) => {
+    const x = new XMLHttpRequest();
+    x.open("POST", API + "/git/blobs");
+    x.setRequestHeader("Accept", "application/vnd.github+json");
+    x.setRequestHeader("Authorization", "Bearer " + token);
+    x.setRequestHeader("Content-Type", "application/json");
+    x.upload.onprogress = e => { if (e.lengthComputable) onProg(e.loaded / e.total); };
+    x.onload = () => x.status < 300 ? ok(JSON.parse(x.responseText)) : bad(new Error(`오류 ${x.status}: ${x.responseText.slice(0, 120)}`));
+    x.onerror = () => bad(new Error("인터넷 연결이 끊겼어요. 다시 시도해주세요."));
+    x.send(JSON.stringify({ content: b64, encoding: "base64" }));
+  });
+}
 async function upload(files){
   files = [...files].filter(f => f.type.startsWith("video/") || /\.(mp4|mov|m4v|webm)$/i.test(f.name));
   if (!files.length) return;
-  const big = files.find(f => f.size > 95 * 1048576);
-  if (big) { $("upMsg").textContent = `${big.name} 파일이 ${(big.size / 1048576).toFixed(0)}MB라 너무 커요. 95MB 이하로 잘라서 올려주세요.`; return; }
+  const big = files.find(f => f.size > 500 * 1048576);
+  if (big) { $("upMsg").textContent = `${big.name} 파일이 ${(big.size / 1048576).toFixed(0)}MB라 너무 커요. 필요한 부분만 잘라서 올려주세요.`; return; }
   $("drop").style.pointerEvents = "none";
   try {
-    const changes = [];
-    for (let i = 0; i < files.length; i++) {
-      const f = files[i];
-      $("upMsg").textContent = `올리는 중 ${i + 1}/${files.length} · ${(f.size / 1048576).toFixed(1)}MB … 창을 닫지 마세요`;
-      const blob = await gh("/git/blobs", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ content: await readB64(f), encoding:"base64" }) });
-      changes.push({ name: safeName(f, i), sha: blob.sha });
-    }
+    const total = files.reduce((a, f) => a + f.size, 0), done = files.map(() => 0), t0 = Date.now();
+    const show = () => {
+      const sent = done.reduce((a, v, k) => a + v * files[k].size, 0), pct = Math.round(sent / total * 100);
+      const sec = (Date.now() - t0) / 1000, speed = sent / Math.max(sec, 1);
+      const left = speed > 0 ? Math.round((total - sent) / speed) : 0;
+      $("upMsg").textContent = `올리는 중 ${pct}% · ${(sent / 1048576).toFixed(0)}/${(total / 1048576).toFixed(0)}MB` + (sec > 3 && pct < 100 ? ` · 약 ${left > 60 ? Math.ceil(left / 60) + "분" : left + "초"} 남음` : "") + " · 창을 닫지 마세요";
+    };
+    show();
+    // 큰 영상은 15MB 조각으로 나눠서 3개씩 동시에 올려요 (GitHub 한 번에 받는 크기 제한 때문)
+    const CH = 15 * 1048576, jobs = [], changes = [];
+    files.forEach((f, i) => { const base = safeName(f, i), n = Math.max(1, Math.ceil(f.size / CH));
+      for (let k = 0; k < n; k++) jobs.push({ i, base, k, part: f.slice(k * CH, Math.min(f.size, (k + 1) * CH)) }); });
+    const prog = jobs.map(() => 0);
+    const upd = () => { files.forEach((f, i) => { done[i] = jobs.reduce((a, j, q) => a + (j.i === i ? prog[q] * j.part.size : 0), 0) / f.size; }); show(); };
+    let next = 0;
+    const worker = async () => {
+      while (next < jobs.length) {
+        const q = next++, j = jobs[q];
+        let blob, tries = 0;
+        while (true) {
+          try { blob = await postBlob(await readB64(j.part), p => { prog[q] = p; upd(); }); break; }
+          catch (e) { if (++tries >= 3) throw e; await new Promise(r => setTimeout(r, 2000)); }
+        }
+        prog[q] = 1; upd();
+        changes.push({ name: `${j.base}.p${String(j.k + 1).padStart(3, "0")}`, sha: blob.sha });
+      }
+    };
+    await Promise.all([worker(), worker(), worker()]);
+    const added = [...new Set(jobs.map(j => j.base))];
     $("upMsg").textContent = "보관함에 저장하는 중…";
-    await commitMedia(changes, `내 영상 ${changes.length}개 추가`);
-    picked.push(...changes.map(c => c.name));
-    $("upMsg").textContent = `${changes.length}개 올렸어요 ✓`; toast("영상을 올렸어요");
+    await commitMedia(changes, `내 영상 ${added.length}개 추가`);
+    picked.push(...added);
+    $("upMsg").textContent = `${added.length}개 올렸어요 ✓`; toast("영상을 올렸어요");
     await loadClips();
   } catch (e) { $("upMsg").textContent = "올리지 못했어요: " + e.message; }
   $("drop").style.pointerEvents = ""; $("file").value = "";
@@ -465,7 +507,8 @@ $("drop").addEventListener("drop", e => upload(e.dataTransfer.files));
 $("clips").addEventListener("click", async e => {
   const d = e.target.closest("[data-del]");
   if (d) { e.preventDefault(); e.stopPropagation(); if (!confirm("이 영상을 보관함에서 지울까요?")) return;
-    try { await commitMedia([{ name: d.dataset.del, sha: null }], "내 영상 삭제"); picked = picked.filter(n => n !== d.dataset.del); toast("지웠어요"); loadClips(); }
+    const g = clips.find(c => c.name === d.dataset.del);
+    try { await commitMedia((g ? g.paths : [d.dataset.del]).map(p => ({ name: p, sha: null })), "내 영상 삭제"); picked = picked.filter(n => n !== d.dataset.del); toast("지웠어요"); loadClips(); }
     catch (err) { toast(err.message); } return; }
   const c = e.target.closest(".clip"); if (!c) return;
   const n = c.dataset.n, k = picked.indexOf(n);
