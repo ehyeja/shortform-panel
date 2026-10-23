@@ -134,6 +134,9 @@ pre{white-space:pre-wrap;word-break:break-all;font-family:inherit;font-size:13px
 .clip b{display:block;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .clip small{font-size:12px;color:var(--sub)}
 .clip .x{border:0;background:none;color:var(--sub);font-size:13px;cursor:pointer;padding:4px}
+.drop{display:flex;flex-direction:column;align-items:center;gap:4px;border:2px dashed var(--line);border-radius:12px;padding:16px;background:var(--card);cursor:pointer;text-align:center}
+.drop.on{border-color:var(--accent);background:var(--accent-soft)}
+.drop b{font-size:15px} .drop span{font-size:12px;color:var(--sub)}
 .up{display:flex;gap:8px;flex-wrap:wrap}
 .up a,.up button{flex:1;text-align:center;border:0;border-radius:10px;padding:11px;font-size:14px;font-weight:700;background:var(--card);color:var(--ink);text-decoration:none;cursor:pointer}
 .mini{font-size:12px;color:var(--sub);margin-top:8px}
@@ -193,11 +196,11 @@ pre{white-space:pre-wrap;word-break:break-all;font-family:inherit;font-size:13px
         <b style="font-size:15px">내 영상 보관함</b>
         <div class="mini" style="margin-top:2px">쓸 영상을 순서대로 눌러 고르세요. 주제를 비워두면 AI가 영상을 보고 정해요.</div>
         <div class="clips" id="clips"><div class="mini">불러오는 중…</div></div>
-        <div class="up">
-          <a id="upPhone" href="shortcuts://run-shortcut?name=%EC%88%8F%ED%8F%BC%EC%98%AC%EB%A6%AC%EA%B8%B0">📤 아이폰으로 올리기</a>
-          <a id="upPc" href="https://github.com/ehyeja/shortform-factory/releases/edit/inbox" target="_blank" rel="noopener">💻 컴퓨터로 올리기</a>
-          <button id="clipRefresh">새로고침</button>
-        </div>
+        <label class="drop" id="drop">
+          <input type="file" id="file" accept="video/*" multiple hidden>
+          <b>＋ 영상 추가</b><span id="dropHint">휴대폰은 사진첩에서, 컴퓨터는 파일을 골라요 (끌어다 놓아도 돼요)</span>
+        </label>
+        <div class="mini" id="upMsg" role="status"></div>
         <div class="opt" style="margin-top:14px"><label>소리</label>
           <div class="seg" data-name="audio"><button aria-pressed="true" data-v="ai_mix">AI+원본 작게</button><button aria-pressed="false" data-v="ai_only">AI 설명만</button><button aria-pressed="false" data-v="original">원본만</button></div></div>
         <div class="opt" style="margin-top:14px"><label>영상이 짧으면</label>
@@ -390,47 +393,85 @@ function look(extra){
   const o = { sub_size:pick("size"), sub_pos:pick("pos"), hook_size:pick("hook"), audio:pick("audio"), fill:pick("fill"), ...(extra||{}) };
   return Object.entries(o).map(([k, v]) => `${k}=${v}`).join(";");
 }
-let inbox = null; let clips = []; let picked = [];
+let clips = null; let picked = [];
+const BR = "media";   // 내 영상이 저장되는 보관함(브랜치)
 function updSrc(){
   const own = pick("src") === "own";
   $("ownBox").hidden = !own; $("reviewSw").hidden = own;
   $("topic").placeholder = own ? "예) 속눈썹펌 시술 과정 (비워두면 AI가 정해요)" : "예) 자기 전 스마트폰 30분이 몸에 주는 변화";
-  if (own && !inbox) loadClips();
+  if (own && clips === null) loadClips();
 }
 async function loadClips(){
   $("clips").innerHTML = '<div class="mini">불러오는 중…</div>';
   try {
-    try { inbox = await gh("/releases/tags/inbox"); }
-    catch (e) {
-      inbox = await gh("/releases", { method:"POST", headers:{"Content-Type":"application/json"},
-        body: JSON.stringify({ tag_name:"inbox", name:"내 영상 보관함", body:"숏폼 공장에 쓸 내 영상을 여기에 올려요.", prerelease:true }) });
-    }
-    clips = (inbox.assets || []).sort((a, b) => b.created_at.localeCompare(a.created_at));
+    let list = [];
+    try { list = await gh(`/contents/media?ref=${BR}&t=${Date.now()}`); } catch (e) { if (!/찾을 수 없/.test(e.message)) throw e; }
+    clips = (Array.isArray(list) ? list : []).filter(f => f.type === "file").sort((a, b) => b.name.localeCompare(a.name));
     picked = picked.filter(n => clips.some(c => c.name === n));
     drawClips();
-  } catch (e) {
-    $("clips").innerHTML = `<div class="mini" style="color:var(--warn)">${esc(e.message.includes("권한") ? "출입증에 Contents '읽기·쓰기' 권한이 필요해요." : e.message)}</div>`;
-  }
+  } catch (e) { $("clips").innerHTML = `<div class="mini" style="color:var(--warn)">${esc(e.message)}</div>`; }
 }
 function drawClips(){
-  if (!clips.length) { $("clips").innerHTML = '<div class="mini">아직 올린 영상이 없어요. 아래 버튼으로 올려주세요.</div>'; return; }
-  $("clips").innerHTML = clips.map((c, i) => { const k = picked.indexOf(c.name);
+  if (!clips || !clips.length) { $("clips").innerHTML = '<div class="mini">아직 올린 영상이 없어요. 아래에서 추가해주세요.</div>'; return; }
+  $("clips").innerHTML = clips.map(c => { const k = picked.indexOf(c.name);
     return `<div class="clip" role="button" tabindex="0" data-n="${esc(c.name)}" aria-pressed="${k >= 0}">
-      <span class="ck">${k >= 0 ? k + 1 : ""}</span><div><b>${esc(c.name)}</b><small>${(c.size / 1048576).toFixed(1)}MB · ${ago(c.created_at)}</small></div>
-      <button class="x" data-del="${c.id}" aria-label="삭제">삭제</button></div>`; }).join("")
-    + `<div class="mini">단축어 설정용 보관함 번호: <b>${inbox.id}</b></div>`;
+      <span class="ck">${k >= 0 ? k + 1 : ""}</span><div><b>${esc(c.name)}</b><small>${(c.size / 1048576).toFixed(1)}MB</small></div>
+      <button class="x" data-del="${esc(c.name)}" aria-label="삭제">삭제</button></div>`; }).join("");
 }
+// 보관함에 파일 넣기/빼기 (한 번에 저장)
+async function commitMedia(changes, message){
+  let base = null, baseTree = null;
+  try { const ref = await gh(`/git/ref/heads/${BR}`); base = ref.object.sha; baseTree = (await gh(`/git/commits/${base}`)).tree.sha; }
+  catch (e) { if (!/찾을 수 없/.test(e.message)) throw e; }
+  const tree = await gh("/git/trees", { method:"POST", headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({ ...(baseTree ? { base_tree: baseTree } : {}), tree: changes.map(c => ({ path:`media/${c.name}`, mode:"100644", type:"blob", sha:c.sha })) }) });
+  const commit = await gh("/git/commits", { method:"POST", headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({ message, tree: tree.sha, parents: base ? [base] : [] }) });
+  if (base) await gh(`/git/refs/heads/${BR}`, { method:"PATCH", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ sha: commit.sha, force: true }) });
+  else await gh("/git/refs", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ ref:`refs/heads/${BR}`, sha: commit.sha }) });
+}
+const readB64 = f => new Promise((ok, bad) => { const r = new FileReader(); r.onload = () => ok(String(r.result).split(",")[1]); r.onerror = () => bad(new Error("파일을 읽지 못했어요")); r.readAsDataURL(f); });
+function safeName(f, i){
+  const d = new Date(), p = n => String(n).padStart(2, "0");
+  const ext = (f.name.match(/\.[A-Za-z0-9]{2,4}$/) || [".mp4"])[0].toLowerCase();
+  return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}-${i + 1}${ext}`;
+}
+async function upload(files){
+  files = [...files].filter(f => f.type.startsWith("video/") || /\.(mp4|mov|m4v|webm)$/i.test(f.name));
+  if (!files.length) return;
+  const big = files.find(f => f.size > 95 * 1048576);
+  if (big) { $("upMsg").textContent = `${big.name} 파일이 ${(big.size / 1048576).toFixed(0)}MB라 너무 커요. 95MB 이하로 잘라서 올려주세요.`; return; }
+  $("drop").style.pointerEvents = "none";
+  try {
+    const changes = [];
+    for (let i = 0; i < files.length; i++) {
+      const f = files[i];
+      $("upMsg").textContent = `올리는 중 ${i + 1}/${files.length} · ${(f.size / 1048576).toFixed(1)}MB … 창을 닫지 마세요`;
+      const blob = await gh("/git/blobs", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ content: await readB64(f), encoding:"base64" }) });
+      changes.push({ name: safeName(f, i), sha: blob.sha });
+    }
+    $("upMsg").textContent = "보관함에 저장하는 중…";
+    await commitMedia(changes, `내 영상 ${changes.length}개 추가`);
+    picked.push(...changes.map(c => c.name));
+    $("upMsg").textContent = `${changes.length}개 올렸어요 ✓`; toast("영상을 올렸어요");
+    await loadClips();
+  } catch (e) { $("upMsg").textContent = "올리지 못했어요: " + e.message; }
+  $("drop").style.pointerEvents = ""; $("file").value = "";
+}
+$("file").onchange = e => upload(e.target.files);
+["dragover","dragenter"].forEach(t => $("drop").addEventListener(t, e => { e.preventDefault(); $("drop").classList.add("on"); }));
+["dragleave","drop"].forEach(t => $("drop").addEventListener(t, e => { e.preventDefault(); $("drop").classList.remove("on"); }));
+$("drop").addEventListener("drop", e => upload(e.dataTransfer.files));
 $("clips").addEventListener("click", async e => {
   const d = e.target.closest("[data-del]");
-  if (d) { e.stopPropagation(); if (!confirm("이 영상을 보관함에서 지울까요?")) return;
-    try { await gh(`/releases/assets/${d.dataset.del}`, { method:"DELETE" }); toast("지웠어요"); loadClips(); } catch (err) { toast(err.message); } return; }
+  if (d) { e.preventDefault(); e.stopPropagation(); if (!confirm("이 영상을 보관함에서 지울까요?")) return;
+    try { await commitMedia([{ name: d.dataset.del, sha: null }], "내 영상 삭제"); picked = picked.filter(n => n !== d.dataset.del); toast("지웠어요"); loadClips(); }
+    catch (err) { toast(err.message); } return; }
   const c = e.target.closest(".clip"); if (!c) return;
   const n = c.dataset.n, k = picked.indexOf(n);
   if (k >= 0) picked.splice(k, 1); else picked.push(n);
   drawClips();
 });
-$("clipRefresh").onclick = () => loadClips();
-if (!/iPhone|iPad|iPod/.test(navigator.userAgent)) $("upPhone").hidden = true;
 
 function opts(extra){ return { length:pick("len"), voice:curVoice(), speed:pick("spd"), look:look(extra) }; }
 async function dispatch(inputs){
