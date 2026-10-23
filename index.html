@@ -193,24 +193,26 @@ pre{white-space:pre-wrap;word-break:break-all;font-family:inherit;font-size:13px
       <textarea id="topic" rows="3" placeholder="예) 자기 전 스마트폰 30분이 몸에 주는 변화"></textarea>
       <div class="ideas" id="ideas"></div>
       <div class="opt" style="margin-top:18px"><label style="font-size:13px;font-weight:700;color:var(--sub);display:block;margin-bottom:8px">화면에 쓸 영상</label>
-        <div class="seg" data-name="src"><button aria-pressed="true" data-v="stock">무료 영상</button><button aria-pressed="false" data-v="own">내 영상</button><button aria-pressed="false" data-v="long">롱폼 링크</button></div></div>
+        <div class="seg" data-name="src"><button aria-pressed="true" data-v="stock">무료 영상</button><button aria-pressed="false" data-v="own">내 영상</button><button aria-pressed="false" data-v="long">링크</button></div></div>
       <div class="src-box" id="longBox" hidden>
-        <b style="font-size:15px">롱폼 영상 링크</b>
-        <div class="mini" style="margin-top:2px">구글 드라이브, 비메오, 인터넷 아카이브, 위키미디어 커먼즈 링크를 붙여넣으세요.</div>
+        <b style="font-size:15px">링크로 가져오기</b>
+        <div class="mini" style="margin-top:2px">유튜브, 인스타그램, 구글 드라이브, 비메오, 인터넷 아카이브, 위키미디어 커먼즈 링크를 붙여넣으세요.</div>
         <input type="text" id="longUrl" inputmode="url" placeholder="https://..." style="width:100%;margin-top:10px;border:1.5px solid var(--line);background:var(--card);border-radius:12px;padding:12px 14px;font-size:15px">
+        <div class="opt" style="margin-top:14px"><label>이 영상은</label>
+          <div class="seg" data-name="rights"><button aria-pressed="true" data-v="cc">CC 영상</button><button aria-pressed="false" data-v="own">내 영상</button><button aria-pressed="false" data-v="permit">허락받음</button></div></div>
         <div class="hint" id="longHint" hidden></div>
         <div class="opt" style="margin-top:14px"><label>원본 출처 (비워두면 링크에서 자동으로 찾아요)</label>
           <input class="cin" id="longCredit" placeholder="예) 「영상 제목」 · 제작자 · CC BY"></div>
         <div class="opt" style="margin-top:14px"><label>만들기 방식</label>
           <div class="seg" data-name="ltype"><button aria-pressed="true" data-v="hl">하이라이트 3개</button><button aria-pressed="false" data-v="one">쇼츠 1개</button></div></div>
-        <details style="margin-top:12px"><summary>구글 드라이브 링크 만드는 법</summary>
+        <details style="margin-top:12px"><summary>링크 사용 안내 (드라이브·유튜브 CC 찾기)</summary>
           <ol class="guide" style="margin-top:8px">
             <li>구글 드라이브 앱 → <b>＋</b> → <b>업로드</b> → 영상 선택</li>
             <li>올라간 영상의 <b>⋮</b> → <b>공유</b> → <b>액세스 관리</b></li>
             <li>일반 액세스를 <b>링크가 있는 모든 사용자</b>로 변경</li>
             <li><b>링크 복사</b> → 여기에 붙여넣기</li>
           </ol>
-          <div class="mini">유튜브 링크는 유튜브가 자동으로 가져오는 걸 막아요. 영상을 받아서 드라이브나 '내 영상'으로 올려주세요.</div>
+          <div class="mini">유튜브 CC 영상 찾는 법: 유튜브에서 검색 → <b>필터</b> → 기능에서 <b>크리에이티브 커먼즈</b> 선택</div>
         </details>
       </div>
       <div class="src-box" id="ownBox" hidden>
@@ -229,7 +231,9 @@ pre{white-space:pre-wrap;word-break:break-all;font-family:inherit;font-size:13px
           <div class="seg" data-name="otype"><button aria-pressed="true" data-v="one">쇼츠 1개</button><button aria-pressed="false" data-v="hl">긴 영상 → 하이라이트 3개</button></div></div>
       </div>
       <div class="src-box" id="mixBox" hidden>
-        <div class="opt"><label>소리</label>
+        <div class="opt"><label>해석 스타일 (원본을 어떤 시각으로 다시 풀지)</label>
+          <div class="seg" data-name="style" style="flex-wrap:wrap"><button aria-pressed="true" data-v="해설">해설</button><button aria-pressed="false" data-v="리액션">리액션</button><button aria-pressed="false" data-v="반전">반전</button><button aria-pressed="false" data-v="꿀팁">꿀팁</button><button aria-pressed="false" data-v="유머">유머</button></div></div>
+        <div class="opt" style="margin-top:14px"><label>소리</label>
           <div class="seg" data-name="audio"><button aria-pressed="true" data-v="ai_mix">AI+원본 작게</button><button aria-pressed="false" data-v="ai_only">AI 설명만</button><button aria-pressed="false" data-v="original">원본만</button></div></div>
         <div class="opt" style="margin-top:14px"><label>영상이 짧으면</label>
           <div class="seg" data-name="fill"><button aria-pressed="true" data-v="stock">무료 영상 채우기</button><button aria-pressed="false" data-v="own">내 영상만</button></div></div>
@@ -375,7 +379,7 @@ document.querySelectorAll(".seg").forEach(seg => seg.onclick = e => {
 });
 const pick = name => document.querySelector(`.seg[data-name="${name}"] [aria-pressed="true"]`).dataset.v;
 function savePrefs(){
-  prefs = { len:pick("len"), spd:pick("spd"), size:pick("size"), pos:pick("pos"), hook:pick("hook"), src:pick("src"), ltype:pick("ltype"), otype:pick("otype"), audio:pick("audio"), fill:pick("fill"),
+  prefs = { len:pick("len"), spd:pick("spd"), size:pick("size"), pos:pick("pos"), hook:pick("hook"), src:pick("src"), ltype:pick("ltype"), otype:pick("otype"), style:pick("style"), rights:pick("rights"), audio:pick("audio"), fill:pick("fill"),
             voice:curVoice(), review:$("reviewTg").getAttribute("aria-checked")==="true" };
   try { localStorage.setItem(SET, JSON.stringify(prefs)); } catch (e) {}
   updPrev(); updSrc();
@@ -413,12 +417,13 @@ $("reviewSw").onclick = () => { const t = $("reviewTg"); t.setAttribute("aria-ch
 // 저장된 설정 불러오기
 if (prefs.len) setSeg("len", prefs.len); if (prefs.spd) setSeg("spd", prefs.spd);
 if (prefs.size) setSeg("size", prefs.size); if (prefs.pos) setSeg("pos", prefs.pos);
-["hook","src","audio","fill","ltype","otype"].forEach(k => { if (prefs[k]) setSeg(k, prefs[k]); });
+["hook","src","audio","fill","ltype","otype","style","rights"].forEach(k => { if (prefs[k]) setSeg(k, prefs[k]); });
 $("reviewTg").setAttribute("aria-checked", prefs.review ? "true" : "false");
 renderVoices(); updPrev();
 
 function look(extra){
-  const o = { sub_size:pick("size"), sub_pos:pick("pos"), hook_size:pick("hook"), audio:pick("audio"), fill:pick("fill"), ...(extra||{}) };
+  const o = { sub_size:pick("size"), sub_pos:pick("pos"), hook_size:pick("hook"), audio:pick("audio"), fill:pick("fill"),
+              style:pick("style"), rights:pick("rights"), ...(extra||{}) };
   return Object.entries(o).map(([k, v]) => `${k}=${v}`).join(";");
 }
 let clips = null; let picked = [];
@@ -558,18 +563,34 @@ $("clips").addEventListener("click", async e => {
 });
 
 // 링크 종류에 따라 안내 + 남의 CC 영상이면 안전한 설정으로
-function longHint(){
-  const u = $("longUrl").value.trim(), h = $("longHint");
-  if (!u) { h.hidden = true; return; }
-  if (/youtu\.?be/.test(u)) { h.hidden = false; h.textContent = "유튜브 링크는 막혀서 못 가져와요. 영상을 내려받아 구글 드라이브 링크나 '내 영상'으로 올려주세요."; return; }
-  if (!/drive\.google\.com/.test(u)) {
-    h.hidden = false;
-    h.textContent = "남의 CC 영상이에요. 출처는 자동으로 적어줄게요. 하이라이트(원본 그대로 자르기)보다 '쇼츠 1개 + AI 설명'이 재사용 콘텐츠 걱정 없이 안전해요.";
-    if (!longHint.done) { setSeg("ltype", "one"); setSeg("audio", "ai_mix"); longHint.done = true; savePrefs(); }
-    return;
-  }
-  h.hidden = true;
+function hlGuard(){
+  const others = (pick("src") === "long" && pick("rights") !== "own") || (pick("src") === "own" && $("ownCredit").value.trim());
+  [["ltype","hl"],["otype","hl"]].forEach(([n, v]) => {
+    const b = document.querySelector(`.seg[data-name="${n}"] [data-v="${v}"]`);
+    b.disabled = !!others; b.style.opacity = others ? .35 : 1;
+    b.title = others ? "다른 사람 영상은 하이라이트(원본 자르기)를 쓸 수 없어요" : "";
+    if (others && pick(n) === "hl") setSeg(n, "one");
+  });
+  updSrc();
 }
+function longHint(){
+  const u = $("longUrl").value.trim(), h = $("longHint"), r = pick("rights");
+  const yt = /youtu\.?be/.test(u), ig = /instagram\.com/.test(u), drive = /drive\.google\.com/.test(u);
+  h.hidden = !u;
+  if (!u) return;
+  if (ig && r === "cc") { h.textContent = "인스타그램에는 크리에이티브 커먼즈가 없어요. 내 영상이거나 제작자에게 허락받은 영상만 쓸 수 있어요. 위에서 '내 영상' 또는 '허락받음'을 골라주세요."; return; }
+  if (yt && r === "cc") h.textContent = "유튜브 CC 영상이면 출처를 자동으로 적어줘요. CC가 아닌 영상이면 공장이 저작권 보호를 위해 자동으로 멈춰요.";
+  else if (drive || r === "own") { h.hidden = true; }
+  else h.textContent = r === "permit" ? "허락받은 영상이에요. 출처에 제작자 이름을 꼭 적어주세요." : "남의 CC 영상이에요. 출처는 자동으로 적어줄게요.";
+  if (!drive && r !== "own" && !longHint.done) {   // 남의 영상은 재해석(쇼츠 1개 + AI 설명)이 안전
+    setSeg("ltype", "one"); setSeg("audio", "ai_mix"); longHint.done = true; savePrefs();
+    if (!h.hidden) h.textContent += " 원본 그대로 자르기보다 'AI 설명'으로 재해석하는 게 재사용 콘텐츠 걱정 없이 안전해서 그렇게 맞춰뒀어요.";
+  }
+}
+document.querySelector('.seg[data-name="rights"]').addEventListener("click", () => setTimeout(() => { longHint(); hlGuard(); }));
+$("ownCredit").addEventListener("input", hlGuard);
+document.querySelector('.seg[data-name="src"]').addEventListener("click", () => setTimeout(hlGuard));
+setTimeout(hlGuard);
 $("longUrl").addEventListener("input", longHint);
 function ccHint(){
   const has = $("ownCredit").value.trim();
@@ -592,7 +613,8 @@ $("make").onclick = async () => {
   const url = $("longUrl").value.trim();
   if (own && !picked.length) { msg("makeMsg","보관함에서 쓸 영상을 골라주세요.","err"); return; }
   if (own && pick("otype") === "hl" && picked.length !== 1) { msg("makeMsg","하이라이트는 긴 영상 1개만 골라주세요.","err"); return; }
-  if (lng && !/^https?:\/\/\S+/.test(url)) { msg("makeMsg","롱폼 링크를 붙여넣어 주세요.","err"); $("longUrl").focus(); return; }
+  if (lng && !/^https?:\/\/\S+/.test(url)) { msg("makeMsg","영상 링크를 붙여넣어 주세요.","err"); $("longUrl").focus(); return; }
+  if (lng && /instagram\.com/.test(url) && pick("rights") === "cc") { msg("makeMsg","인스타그램 영상은 '내 영상' 또는 '허락받음'일 때만 쓸 수 있어요.","err"); return; }
   if (src === "stock" && !topic) { msg("makeMsg","주제를 입력해주세요.","err"); $("topic").focus(); return; }
   $("make").disabled = true; $("make").textContent = "주문 넣는 중…"; msg("makeMsg","");
   try {
@@ -667,7 +689,8 @@ async function loadShips(){
     const rels = all.filter(r => r.tag_name.startsWith("short-")).slice(0, 12);
     ships = rels.map(r => { const b = (r.body || "").replace(/\r/g, "").replace(/<!--SCRIPT:[^>]*-->/, "");
       const pol = ((b.split("\n").find(l => l.startsWith("✅")) || "").split("/")[0] || "").replace(/✅|정책 검사:/g, "").trim();
-      return { title: part(b,"📌") || r.name, desc: part(b,"📝"), pin: part(b,"💬"), pol, warn: part(b,"⚠️"), asset:(r.assets||[])[0], date:r.created_at, script:hidden(r.body) }; });
+      const om = /🎨 독창성 점수: (\d+)점/.exec(b);
+      return { title: part(b,"📌") || r.name, desc: part(b,"📝"), pin: part(b,"💬"), pol, warn: part(b,"⚠️"), asset:(r.assets||[])[0], date:r.created_at, script:hidden(r.body), orig: om ? +om[1] : null }; });
     if (!ships.length) { $("ships").innerHTML = `<section class="card"><div class="empty">완성된 영상이 여기에 쌓여요.</div></section>`; return; }
     $("ships").innerHTML = ships.map((s, i) => `
       <section class="card vid">
@@ -675,7 +698,7 @@ async function loadShips(){
           <div class="thumb">▶</div>
           <div style="min-width:0">
             <h4>${esc(s.title)}</h4>
-            <div class="meta">${ago(s.date)} <span class="badge ${s.pol === "통과" ? "ok" : "warn"}">정책 ${esc(s.pol || "-")}</span></div>
+            <div class="meta">${ago(s.date)} <span class="badge ${s.pol === "통과" ? "ok" : "warn"}">정책 ${esc(s.pol || "-")}</span>${s.orig !== null ? ` <span class="badge ${s.orig >= 60 ? "ok" : "warn"}">독창성 ${s.orig}점</span>` : ""}</div>
           </div>
         </div>
         <div class="acts">
