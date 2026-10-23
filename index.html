@@ -123,6 +123,20 @@ pre{white-space:pre-wrap;word-break:break-all;font-family:inherit;font-size:13px
 .draft .btns{display:flex;gap:6px;flex:0 0 auto}
 .pill{border:0;border-radius:10px;padding:9px 12px;font-size:13px;font-weight:700;cursor:pointer;background:var(--ink);color:var(--card)}
 .pill.light{background:var(--soft);color:var(--sub)}
+/* 내 영상 */
+.src-box{margin-top:14px;padding:14px;border-radius:14px;background:var(--soft)}
+.clips{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.clip{display:flex;align-items:center;gap:10px;background:var(--card);border-radius:10px;padding:10px 12px;cursor:pointer;border:1.5px solid transparent}
+.clip[aria-pressed="true"]{border-color:var(--ink)}
+.clip .ck{flex:0 0 22px;height:22px;border-radius:6px;border:1.5px solid var(--line);display:grid;place-items:center;font-size:12px;font-weight:800}
+.clip[aria-pressed="true"] .ck{background:var(--ink);border-color:var(--ink);color:var(--card)}
+.clip div{flex:1;min-width:0}
+.clip b{display:block;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.clip small{font-size:12px;color:var(--sub)}
+.clip .x{border:0;background:none;color:var(--sub);font-size:13px;cursor:pointer;padding:4px}
+.up{display:flex;gap:8px;flex-wrap:wrap}
+.up a,.up button{flex:1;text-align:center;border:0;border-radius:10px;padding:11px;font-size:14px;font-weight:700;background:var(--card);color:var(--ink);text-decoration:none;cursor:pointer}
+.mini{font-size:12px;color:var(--sub);margin-top:8px}
 /* 대본 편집기 */
 .sheet{position:fixed;inset:0;background:var(--bg);z-index:20;overflow-y:auto;padding-top:env(safe-area-inset-top,0px)}
 .sheet-in{max-width:640px;margin:0 auto;padding:12px 16px 140px}
@@ -173,6 +187,22 @@ pre{white-space:pre-wrap;word-break:break-all;font-family:inherit;font-size:13px
       <p class="desc">주제만 적으면 대본·목소리·편집까지 자동으로 만들어요.</p>
       <textarea id="topic" rows="3" placeholder="예) 자기 전 스마트폰 30분이 몸에 주는 변화"></textarea>
       <div class="ideas" id="ideas"></div>
+      <div class="opt" style="margin-top:18px"><label style="font-size:13px;font-weight:700;color:var(--sub);display:block;margin-bottom:8px">화면에 쓸 영상</label>
+        <div class="seg" data-name="src"><button aria-pressed="true" data-v="stock">무료 영상</button><button aria-pressed="false" data-v="own">내가 찍은 영상</button></div></div>
+      <div class="src-box" id="ownBox" hidden>
+        <b style="font-size:15px">내 영상 보관함</b>
+        <div class="mini" style="margin-top:2px">쓸 영상을 순서대로 눌러 고르세요. 주제를 비워두면 AI가 영상을 보고 정해요.</div>
+        <div class="clips" id="clips"><div class="mini">불러오는 중…</div></div>
+        <div class="up">
+          <a id="upPhone" href="shortcuts://run-shortcut?name=%EC%88%8F%ED%8F%BC%EC%98%AC%EB%A6%AC%EA%B8%B0">📤 아이폰으로 올리기</a>
+          <a id="upPc" href="https://github.com/ehyeja/shortform-factory/releases/edit/inbox" target="_blank" rel="noopener">💻 컴퓨터로 올리기</a>
+          <button id="clipRefresh">새로고침</button>
+        </div>
+        <div class="opt" style="margin-top:14px"><label>소리</label>
+          <div class="seg" data-name="audio"><button aria-pressed="true" data-v="ai_mix">AI+원본 작게</button><button aria-pressed="false" data-v="ai_only">AI 설명만</button><button aria-pressed="false" data-v="original">원본만</button></div></div>
+        <div class="opt" style="margin-top:14px"><label>영상이 짧으면</label>
+          <div class="seg" data-name="fill"><button aria-pressed="true" data-v="stock">무료 영상 채우기</button><button aria-pressed="false" data-v="own">내 영상만</button></div></div>
+      </div>
       <div class="opts">
         <div class="opt"><label>길이</label>
           <div class="seg" data-name="len"><button aria-pressed="false" data-v="45">45초</button><button aria-pressed="true" data-v="50">50초</button><button aria-pressed="false" data-v="55">55초</button><button aria-pressed="false" data-v="60">60초</button></div></div>
@@ -181,6 +211,8 @@ pre{white-space:pre-wrap;word-break:break-all;font-family:inherit;font-size:13px
           <div class="sample-note" id="sampleNote"></div></div>
         <div class="opt"><label>말 속도</label>
           <div class="seg" data-name="spd"><button aria-pressed="false" data-v="10~20대 (빠르게)">빠르게</button><button aria-pressed="true" data-v="30대 (보통)">보통</button><button aria-pressed="false" data-v="40대 이상 (느리게)">느리게</button></div></div>
+        <div class="opt"><label>제목 크기</label>
+          <div class="seg" data-name="hook"><button aria-pressed="false" data-v="작게">작게</button><button aria-pressed="true" data-v="보통">보통</button><button aria-pressed="false" data-v="크게">크게</button></div></div>
         <div class="opt subrow">
           <div>
             <label>자막 크기</label>
@@ -188,7 +220,7 @@ pre{white-space:pre-wrap;word-break:break-all;font-family:inherit;font-size:13px
             <label style="margin-top:14px">자막 위치</label>
             <div class="seg" data-name="pos"><button aria-pressed="false" data-v="위">위</button><button aria-pressed="false" data-v="가운데">가운데</button><button aria-pressed="true" data-v="아래">아래</button></div>
           </div>
-          <div class="phone" aria-hidden="true"><i class="h"></i><i class="h h2"></i><i class="s" id="subPrev"></i><i class="ui"></i></div>
+          <div class="phone" aria-hidden="true" id="phone"><i class="h"></i><i class="h h2"></i><i class="s" id="subPrev"></i><i class="ui"></i></div>
         </div>
       </div>
       <div class="switch" id="reviewSw">
@@ -263,6 +295,7 @@ const VOICES = [
   ["여성 상큼","Leda","젊고 상큼한"],["남성 활기","Puck","힘차고 밝은"],["남성 신뢰","Charon","믿음직한 정보형"],["남성 친근","Achird","편안하고 친근한"]];
 let token = ""; let poll = null; let ships = []; let drafts = []; let samples = {}; let edit = null;
 const SET = "sff_settings";
+const IOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
 let prefs = {}; try { prefs = JSON.parse(localStorage.getItem(SET) || "{}"); } catch (e) {}
 try { token = localStorage.getItem(KEY) || ""; } catch (e) {}
 
@@ -286,6 +319,7 @@ async function gh(path, opts={}){
 
 function show(){
   const has = !!token;
+  setTimeout(updSrc);
   $("setup").hidden = has; $("main").hidden = !has; $("gear").hidden = !has;
   if (has) loadAll();
 }
@@ -310,15 +344,18 @@ document.querySelectorAll(".seg").forEach(seg => seg.onclick = e => {
 });
 const pick = name => document.querySelector(`.seg[data-name="${name}"] [aria-pressed="true"]`).dataset.v;
 function savePrefs(){
-  prefs = { len:pick("len"), spd:pick("spd"), size:pick("size"), pos:pick("pos"), voice:curVoice(), review:$("reviewTg").getAttribute("aria-checked")==="true" };
+  prefs = { len:pick("len"), spd:pick("spd"), size:pick("size"), pos:pick("pos"), hook:pick("hook"), src:pick("src"), audio:pick("audio"), fill:pick("fill"),
+            voice:curVoice(), review:$("reviewTg").getAttribute("aria-checked")==="true" };
   try { localStorage.setItem(SET, JSON.stringify(prefs)); } catch (e) {}
-  updPrev();
+  updPrev(); updSrc();
 }
 function setSeg(name, v){ document.querySelectorAll(`.seg[data-name="${name}"] button`).forEach(b => b.setAttribute("aria-pressed", b.dataset.v === v ? "true" : "false")); }
 function curVoice(){ const b = document.querySelector('#voices [aria-pressed="true"]'); return b ? b.dataset.v : "여성 밝음"; }
 function updPrev(){
   const y = {"위":"40%","가운데":"55%","아래":"70%"}[pick("pos")], h = {"작게":"6px","보통":"8px","크게":"10px"}[pick("size")];
   $("subPrev").style.setProperty("--sy", y); $("subPrev").style.setProperty("--sh", h);
+  const hk = {"작게":"5px","보통":"7px","크게":"9px"}[pick("hook")];
+  document.querySelectorAll("#phone .h").forEach(e => e.style.height = hk);
 }
 function renderVoices(){
   const cur = prefs.voice || "여성 밝음";
@@ -345,13 +382,60 @@ $("reviewSw").onclick = () => { const t = $("reviewTg"); t.setAttribute("aria-ch
 // 저장된 설정 불러오기
 if (prefs.len) setSeg("len", prefs.len); if (prefs.spd) setSeg("spd", prefs.spd);
 if (prefs.size) setSeg("size", prefs.size); if (prefs.pos) setSeg("pos", prefs.pos);
+["hook","src","audio","fill"].forEach(k => { if (prefs[k]) setSeg(k, prefs[k]); });
 $("reviewTg").setAttribute("aria-checked", prefs.review ? "true" : "false");
 renderVoices(); updPrev();
 
-function opts(){ return { length:pick("len"), voice:curVoice(), speed:pick("spd"), sub_size:pick("size"), sub_pos:pick("pos") }; }
+function look(extra){
+  const o = { sub_size:pick("size"), sub_pos:pick("pos"), hook_size:pick("hook"), audio:pick("audio"), fill:pick("fill"), ...(extra||{}) };
+  return Object.entries(o).map(([k, v]) => `${k}=${v}`).join(";");
+}
+let inbox = null; let clips = []; let picked = [];
+function updSrc(){
+  const own = pick("src") === "own";
+  $("ownBox").hidden = !own; $("reviewSw").hidden = own;
+  $("topic").placeholder = own ? "예) 속눈썹펌 시술 과정 (비워두면 AI가 정해요)" : "예) 자기 전 스마트폰 30분이 몸에 주는 변화";
+  if (own && !inbox) loadClips();
+}
+async function loadClips(){
+  $("clips").innerHTML = '<div class="mini">불러오는 중…</div>';
+  try {
+    try { inbox = await gh("/releases/tags/inbox"); }
+    catch (e) {
+      inbox = await gh("/releases", { method:"POST", headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({ tag_name:"inbox", name:"내 영상 보관함", body:"숏폼 공장에 쓸 내 영상을 여기에 올려요.", prerelease:true }) });
+    }
+    clips = (inbox.assets || []).sort((a, b) => b.created_at.localeCompare(a.created_at));
+    picked = picked.filter(n => clips.some(c => c.name === n));
+    drawClips();
+  } catch (e) {
+    $("clips").innerHTML = `<div class="mini" style="color:var(--warn)">${esc(e.message.includes("권한") ? "출입증에 Contents '읽기·쓰기' 권한이 필요해요." : e.message)}</div>`;
+  }
+}
+function drawClips(){
+  if (!clips.length) { $("clips").innerHTML = '<div class="mini">아직 올린 영상이 없어요. 아래 버튼으로 올려주세요.</div>'; return; }
+  $("clips").innerHTML = clips.map((c, i) => { const k = picked.indexOf(c.name);
+    return `<div class="clip" role="button" tabindex="0" data-n="${esc(c.name)}" aria-pressed="${k >= 0}">
+      <span class="ck">${k >= 0 ? k + 1 : ""}</span><div><b>${esc(c.name)}</b><small>${(c.size / 1048576).toFixed(1)}MB · ${ago(c.created_at)}</small></div>
+      <button class="x" data-del="${c.id}" aria-label="삭제">삭제</button></div>`; }).join("")
+    + `<div class="mini">단축어 설정용 보관함 번호: <b>${inbox.id}</b></div>`;
+}
+$("clips").addEventListener("click", async e => {
+  const d = e.target.closest("[data-del]");
+  if (d) { e.stopPropagation(); if (!confirm("이 영상을 보관함에서 지울까요?")) return;
+    try { await gh(`/releases/assets/${d.dataset.del}`, { method:"DELETE" }); toast("지웠어요"); loadClips(); } catch (err) { toast(err.message); } return; }
+  const c = e.target.closest(".clip"); if (!c) return;
+  const n = c.dataset.n, k = picked.indexOf(n);
+  if (k >= 0) picked.splice(k, 1); else picked.push(n);
+  drawClips();
+});
+$("clipRefresh").onclick = () => loadClips();
+if (!/iPhone|iPad|iPod/.test(navigator.userAgent)) $("upPhone").hidden = true;
+
+function opts(extra){ return { length:pick("len"), voice:curVoice(), speed:pick("spd"), look:look(extra) }; }
 async function dispatch(inputs){
   await gh(`/actions/workflows/${WF}/dispatches`, { method:"POST", headers:{"Content-Type":"application/json"},
-    body: JSON.stringify({ ref:"main", inputs:{ ...opts(), ...inputs } }) });
+    body: JSON.stringify({ ref:"main", inputs:{ ...opts(inputs._look), ...inputs, _look:undefined } }) });
 }
 const b64e = str => { const bytes = new TextEncoder().encode(str); let bin = ""; for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]); return btoa(bin); };
 const b64d = b => new TextDecoder().decode(Uint8Array.from(atob(b), c => c.charCodeAt(0)));
@@ -359,11 +443,13 @@ function hidden(body){ const m = /<!--SCRIPT:([A-Za-z0-9+/=]+)-->/.exec(body || 
 
 $("make").onclick = async () => {
   const topic = $("topic").value.trim();
-  if (!topic) { msg("makeMsg","주제를 입력해주세요.","err"); $("topic").focus(); return; }
+  const own = pick("src") === "own";
+  if (own && !picked.length) { msg("makeMsg","보관함에서 쓸 영상을 골라주세요.","err"); return; }
+  if (!own && !topic) { msg("makeMsg","주제를 입력해주세요.","err"); $("topic").focus(); return; }
   $("make").disabled = true; $("make").textContent = "주문 넣는 중…"; msg("makeMsg","");
   try {
-    const review = $("reviewTg").getAttribute("aria-checked") === "true";
-    await dispatch({ topic, mode: review ? "script" : "full" });
+    const review = !own && $("reviewTg").getAttribute("aria-checked") === "true";
+    await dispatch(own ? { topic, mode:"own", media: picked.join("|") } : { topic, mode: review ? "script" : "full" });
     msg("makeMsg", review ? "대본 쓰는 중! 1~2분 뒤 '대본 확인 대기'에 나타나요." : "주문 완료! 약 8~10분 뒤 아래에 영상이 도착해요.", "ok"); $("topic").value="";
     setTimeout(loadRuns, 4000); startPoll();
   } catch (e) { msg("makeMsg", e.message, "err"); }
@@ -440,13 +526,15 @@ async function loadShips(){
           </div>
         </div>
         <div class="acts">
-          ${s.asset ? `<a class="act main" href="${esc(s.asset.browser_download_url)}" target="_blank" rel="noopener">${ICON.down}받기</a>` : `<span></span>`}
+          ${s.asset ? (IOS ? `<a class="act main" href="shortcuts://run-shortcut?name=${encodeURIComponent("숏폼저장")}&input=text&text=${encodeURIComponent(s.asset.url)}">${ICON.down}사진첩</a>`
+                           : `<a class="act main" href="${esc(s.asset.browser_download_url)}" target="_blank" rel="noopener">${ICON.down}받기</a>`) : `<span></span>`}
           <button class="act" data-c="title" data-i="${i}">${ICON.copy}제목</button>
           <button class="act" data-c="desc" data-i="${i}">${ICON.text}설명</button>
           <button class="act" data-c="pin" data-i="${i}">${ICON.chat}댓글</button>
           <button class="act" data-e="${i}" ${s.script ? "" : "disabled style=\"opacity:.4\""}>${ICON.edit}수정</button>
         </div>
         ${s.warn ? `<details><summary>⚠️ 고칠 점 보기</summary><pre>${esc(s.warn)}</pre></details>` : ""}
+        ${IOS && s.asset ? `<a class="mini" style="display:block;text-align:right;color:var(--sub)" href="${esc(s.asset.browser_download_url)}" target="_blank" rel="noopener">파일로 받기</a>` : ""}
       </section>`).join("");
   } catch (e) { $("ships").innerHTML = `<section class="card"><div class="empty">${esc(e.message)}</div></section>`; }
 }
@@ -503,7 +591,9 @@ $("eGo").onclick = async () => {
     title:$("eTitle").value.trim(), description:$("eDesc").value.trim(), scenes };
   $("eGo").disabled = true; $("eGo").textContent = "주문 넣는 중…";
   try {
-    await dispatch({ topic: sc.topic || sc.title, mode:"full", script: b64e(JSON.stringify(sc)), draft: edit.draft || "" });
+    const ownEdit = !!sc.media;
+    await dispatch({ topic: sc.topic || sc.title, mode: ownEdit ? "own" : "full", script: b64e(JSON.stringify(sc)), draft: edit.draft || "",
+      ...(ownEdit ? { media: sc.media, _look: { audio: sc.audio || "ai_mix", fill: sc.fill || "stock" } } : {}) });
     if (edit.draft) { let l = []; try { l = JSON.parse(localStorage.getItem("sff_hidden") || "[]"); } catch (er) {} l.push(edit.draft); try { localStorage.setItem("sff_hidden", JSON.stringify(l)); } catch (er) {} }
     closeEditor(); toast("주문 완료! 8~10분 뒤 도착해요"); loadShips(); setTimeout(loadRuns, 4000); startPoll();
   } catch (err) { toast(err.message); }
