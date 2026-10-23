@@ -236,7 +236,7 @@ pre{white-space:pre-wrap;word-break:break-all;font-family:inherit;font-size:13px
         <div class="opt" style="margin-top:14px"><label>소리</label>
           <div class="seg" data-name="audio"><button aria-pressed="true" data-v="ai_mix">AI+원본 작게</button><button aria-pressed="false" data-v="ai_only">AI 설명만</button><button aria-pressed="false" data-v="original">원본만</button></div></div>
         <div class="opt" style="margin-top:14px"><label>영상이 짧으면</label>
-          <div class="seg" data-name="fill"><button aria-pressed="true" data-v="stock">무료 영상 채우기</button><button aria-pressed="false" data-v="own">내 영상만</button></div></div>
+          <div class="seg" data-name="fill"><button aria-pressed="true" data-v="stock">무료 영상 채우기</button><button aria-pressed="false" data-v="own">원본 영상만</button></div></div>
       </div>
       <div class="opts">
         <div class="opt"><label>길이</label>
@@ -583,7 +583,7 @@ function longHint(){
   else if (drive || r === "own") { h.hidden = true; }
   else h.textContent = r === "permit" ? "허락받은 영상이에요. 출처에 제작자 이름을 꼭 적어주세요." : "남의 CC 영상이에요. 출처는 자동으로 적어줄게요.";
   if (!drive && r !== "own" && !longHint.done) {   // 남의 영상은 재해석(쇼츠 1개 + AI 설명)이 안전
-    setSeg("ltype", "one"); setSeg("audio", "ai_mix"); longHint.done = true; savePrefs();
+    setSeg("ltype", "one"); setSeg("audio", "ai_mix"); setSeg("fill", "own"); longHint.done = true; savePrefs();
     if (!h.hidden) h.textContent += " 원본 그대로 자르기보다 'AI 설명'으로 재해석하는 게 재사용 콘텐츠 걱정 없이 안전해서 그렇게 맞춰뒀어요.";
   }
 }
