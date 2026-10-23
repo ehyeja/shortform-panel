@@ -93,6 +93,55 @@ pre{white-space:pre-wrap;word-break:break-all;font-family:inherit;font-size:13px
 .toast.on{opacity:1;transform:translate(-50%,0)}
 .link{color:var(--blue)}
 [hidden]{display:none!important}
+/* 목소리 */
+.voices{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.voice{display:flex;align-items:center;gap:8px;border:1.5px solid var(--line);border-radius:12px;padding:10px 10px 10px 12px;cursor:pointer;background:var(--card);text-align:left}
+.voice[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.voice div{flex:1;min-width:0}
+.voice b{display:block;font-size:14px}
+.voice span{display:block;font-size:12px;color:var(--sub)}
+.play{flex:0 0 auto;width:32px;height:32px;border-radius:50%;background:var(--soft);display:grid;place-items:center;color:var(--ink);text-decoration:none;font-size:12px}
+.sample-note{font-size:12px;color:var(--sub);margin-top:8px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.sample-note button{border:0;background:var(--soft);border-radius:8px;padding:6px 10px;font-size:12px;font-weight:700;cursor:pointer}
+/* 자막 미리보기 */
+.subrow{display:grid;grid-template-columns:1fr 64px;gap:14px;align-items:end}
+.phone{width:64px;height:112px;border-radius:12px;border:2px solid var(--ink);position:relative;background:linear-gradient(180deg,#9FB4C7,#5E7385);overflow:hidden}
+.phone .h{position:absolute;left:10px;right:10px;top:16px;height:7px;border-radius:2px;background:#FFE14D}
+.phone .h2{top:26px;background:#fff}
+.phone .s{position:absolute;left:12px;right:16px;height:var(--sh,7px);border-radius:2px;background:#fff;top:var(--sy,72%);transition:top .2s,height .2s}
+.phone .ui{position:absolute;right:4px;top:46%;width:6px;height:34px;border-radius:3px;background:rgba(255,255,255,.35)}
+/* 스위치 */
+.switch{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:18px;padding:14px;border-radius:14px;background:var(--soft);cursor:pointer}
+.switch b{font-size:15px;display:block} .switch span{font-size:12px;color:var(--sub)}
+.tg{flex:0 0 auto;width:46px;height:28px;border-radius:14px;background:var(--line);position:relative;transition:background .15s;border:0;cursor:pointer}
+.tg::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:left .15s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.tg[aria-checked="true"]{background:var(--accent)} .tg[aria-checked="true"]::after{left:21px}
+.acts{grid-template-columns:repeat(5,1fr)}
+.draft{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.draft b{font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
+.draft small{font-size:12px;color:var(--sub)}
+.draft .btns{display:flex;gap:6px;flex:0 0 auto}
+.pill{border:0;border-radius:10px;padding:9px 12px;font-size:13px;font-weight:700;cursor:pointer;background:var(--ink);color:var(--card)}
+.pill.light{background:var(--soft);color:var(--sub)}
+/* 대본 편집기 */
+.sheet{position:fixed;inset:0;background:var(--bg);z-index:20;overflow-y:auto;padding-top:env(safe-area-inset-top,0px)}
+.sheet-in{max-width:640px;margin:0 auto;padding:12px 16px 140px}
+.sheet-top{position:sticky;top:0;background:var(--bg);display:flex;justify-content:space-between;align-items:center;padding:10px 0;z-index:2}
+.sheet-top h2{margin:0}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:13px;font-weight:700;color:var(--sub);margin-bottom:6px}
+.field input,.field textarea{width:100%;border:1.5px solid var(--line);background:var(--card);border-radius:12px;padding:12px 14px;font-size:16px;resize:vertical}
+.field textarea{min-height:64px}
+.scene{background:var(--card);border-radius:16px;padding:14px;margin-bottom:10px}
+.scene-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:13px;font-weight:700;color:var(--sub)}
+.scene-h button{border:0;background:none;color:var(--warn);font-size:13px;cursor:pointer}
+.scene textarea{width:100%;border:1.5px solid var(--line);background:var(--soft);border-radius:12px;padding:12px;font-size:16px;resize:vertical;min-height:60px}
+.scene details{margin-top:8px}
+.add{width:100%;border:1.5px dashed var(--line);background:transparent;border-radius:14px;padding:14px;font-weight:700;color:var(--sub);cursor:pointer}
+.sheet-bar{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px));z-index:21}
+.sheet-bar .in{max-width:640px;margin:0 auto}
+.sheet-bar small{display:block;text-align:center;font-size:12px;color:var(--sub);margin-bottom:8px}
+.sheet-bar .primary{margin-top:0}
 </style>
 </head>
 <body>
@@ -128,13 +177,33 @@ pre{white-space:pre-wrap;word-break:break-all;font-family:inherit;font-size:13px
         <div class="opt"><label>길이</label>
           <div class="seg" data-name="len"><button aria-pressed="false" data-v="45">45초</button><button aria-pressed="true" data-v="50">50초</button><button aria-pressed="false" data-v="55">55초</button><button aria-pressed="false" data-v="60">60초</button></div></div>
         <div class="opt"><label>목소리</label>
-          <div class="seg" data-name="voice"><button aria-pressed="true" data-v="여성">여성</button><button aria-pressed="false" data-v="남성">남성</button></div></div>
+          <div class="voices" id="voices"></div>
+          <div class="sample-note" id="sampleNote"></div></div>
         <div class="opt"><label>말 속도</label>
           <div class="seg" data-name="spd"><button aria-pressed="false" data-v="10~20대 (빠르게)">빠르게</button><button aria-pressed="true" data-v="30대 (보통)">보통</button><button aria-pressed="false" data-v="40대 이상 (느리게)">느리게</button></div></div>
+        <div class="opt subrow">
+          <div>
+            <label>자막 크기</label>
+            <div class="seg" data-name="size"><button aria-pressed="false" data-v="작게">작게</button><button aria-pressed="true" data-v="보통">보통</button><button aria-pressed="false" data-v="크게">크게</button></div>
+            <label style="margin-top:14px">자막 위치</label>
+            <div class="seg" data-name="pos"><button aria-pressed="false" data-v="위">위</button><button aria-pressed="false" data-v="가운데">가운데</button><button aria-pressed="true" data-v="아래">아래</button></div>
+          </div>
+          <div class="phone" aria-hidden="true"><i class="h"></i><i class="h h2"></i><i class="s" id="subPrev"></i><i class="ui"></i></div>
+        </div>
+      </div>
+      <div class="switch" id="reviewSw">
+        <div><b>대본 먼저 확인하기</b><span>켜면 대본을 먼저 보여주고, 고친 뒤에 영상을 만들어요</span></div>
+        <button class="tg" id="reviewTg" role="switch" aria-checked="false" aria-label="대본 먼저 확인하기"></button>
       </div>
       <button class="primary" id="make">만들기</button>
       <div class="msg" id="makeMsg" role="status"></div>
     </section>
+
+    <!-- 대본 확인 -->
+    <div id="draftWrap" hidden>
+      <div class="sec"><h3>대본 확인 대기</h3></div>
+      <section class="card" id="drafts"></section>
+    </div>
 
     <!-- 진행 상황 -->
     <div class="sec"><h3>진행 상황</h3><button id="refresh">새로고침</button></div>
@@ -159,6 +228,20 @@ pre{white-space:pre-wrap;word-break:break-all;font-family:inherit;font-size:13px
     </section>
   </div>
 </div>
+<div class="sheet" id="sheet" hidden>
+  <div class="sheet-in">
+    <div class="sheet-top"><h2 id="sheetTitle">대본 수정</h2><button class="icon-btn" id="sheetClose" aria-label="닫기">✕</button></div>
+    <p class="desc">마음에 안 드는 문장만 고치면 돼요. 숫자는 그대로 써도 AI가 자연스럽게 읽어요.</p>
+    <div class="field"><label>첫 화면 제목 · 윗줄 (궁금증)</label><input id="eH1"></div>
+    <div class="field"><label>첫 화면 제목 · 아랫줄 (결과·숫자)</label><input id="eH2"></div>
+    <div class="field"><label>유튜브 제목</label><input id="eTitle"></div>
+    <div class="field"><label>유튜브 설명</label><textarea id="eDesc" rows="3"></textarea></div>
+    <div class="sec" style="margin-top:18px"><h3>장면별 대본</h3></div>
+    <div id="eScenes"></div>
+    <button class="add" id="eAdd">＋ 장면 추가</button>
+  </div>
+  <div class="sheet-bar"><div class="in"><small id="eInfo"></small><button class="primary" id="eGo">이 대본으로 영상 만들기</button></div></div>
+</div>
 <div class="toast" id="toast" role="status"></div>
 
 <script>
@@ -172,17 +255,28 @@ const ICON = {
   down:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l-5-5m5 5l5-5M4 21h16"/></svg>',
   copy:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>',
   text:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg>',
+  edit:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>',
   chat:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 21l1.9-5.4A8 8 0 1 1 21 12z"/></svg>'
 };
-let token = ""; let poll = null; let ships = [];
+const VOICES = [
+  ["여성 밝음","Zephyr","또렷하고 밝은"],["여성 활기","Laomedeia","신나고 경쾌한"],["여성 차분","Kore","단단하고 차분한"],["여성 따뜻","Sulafat","부드럽고 따뜻한"],
+  ["여성 상큼","Leda","젊고 상큼한"],["남성 활기","Puck","힘차고 밝은"],["남성 신뢰","Charon","믿음직한 정보형"],["남성 친근","Achird","편안하고 친근한"]];
+let token = ""; let poll = null; let ships = []; let drafts = []; let samples = {}; let edit = null;
+const SET = "sff_settings";
+let prefs = {}; try { prefs = JSON.parse(localStorage.getItem(SET) || "{}"); } catch (e) {}
 try { token = localStorage.getItem(KEY) || ""; } catch (e) {}
 
 function toast(t){ const el=$("toast"); el.textContent=t; el.classList.add("on"); clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove("on"),1600); }
 function msg(id,t,k){ const el=$(id); el.textContent=t; el.className="msg "+(k||""); }
 
 async function gh(path, opts={}){
-  const r = await fetch(API + path, { ...opts,
-    headers:{ "Accept":"application/vnd.github+json", "Authorization":"Bearer "+token, "X-GitHub-Api-Version":"2022-11-28", ...(opts.headers||{}) } });
+  let r;
+  try {
+    r = await fetch(API + path, { ...opts, cache:"no-store",
+      headers:{ "Accept":"application/vnd.github+json", "Authorization":"Bearer "+token, ...(opts.headers||{}) } });
+  } catch (e) {
+    throw new Error("GitHub에 연결하지 못했어요. 인터넷 연결을 확인하고, 광고 차단 프로그램이 있으면 이 사이트에서 꺼주세요.");
+  }
   if (r.status === 401) throw new Error("출입증이 틀렸거나 기간이 끝났어요. 오른쪽 위 설정에서 다시 넣어주세요.");
   if (r.status === 403) throw new Error("출입증 권한이 부족해요. Actions 읽기·쓰기, Contents 읽기 권한을 확인해주세요.");
   if (r.status === 404) throw new Error("공장 저장소를 찾을 수 없어요. 출입증에 shortform-factory가 선택됐는지 확인해주세요.");
@@ -196,7 +290,7 @@ function show(){
   if (has) loadAll();
 }
 $("saveTok").onclick = async () => {
-  const v = $("tok").value.trim();
+  const v = $("tok").value.replace(/[^A-Za-z0-9_]/g, "");   // 붙여넣을 때 섞인 빈칸·줄바꿈 제거
   if (!v) return msg("tokMsg","출입증을 붙여넣어 주세요.","err");
   const old = token; token = v; msg("tokMsg","확인하는 중…");
   try { await gh(""); try { localStorage.setItem(KEY, v); } catch (e) {}
@@ -215,15 +309,62 @@ document.querySelectorAll(".seg").forEach(seg => seg.onclick = e => {
   seg.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b ? "true" : "false"));
 });
 const pick = name => document.querySelector(`.seg[data-name="${name}"] [aria-pressed="true"]`).dataset.v;
+function savePrefs(){
+  prefs = { len:pick("len"), spd:pick("spd"), size:pick("size"), pos:pick("pos"), voice:curVoice(), review:$("reviewTg").getAttribute("aria-checked")==="true" };
+  try { localStorage.setItem(SET, JSON.stringify(prefs)); } catch (e) {}
+  updPrev();
+}
+function setSeg(name, v){ document.querySelectorAll(`.seg[data-name="${name}"] button`).forEach(b => b.setAttribute("aria-pressed", b.dataset.v === v ? "true" : "false")); }
+function curVoice(){ const b = document.querySelector('#voices [aria-pressed="true"]'); return b ? b.dataset.v : "여성 밝음"; }
+function updPrev(){
+  const y = {"위":"40%","가운데":"55%","아래":"70%"}[pick("pos")], h = {"작게":"6px","보통":"8px","크게":"10px"}[pick("size")];
+  $("subPrev").style.setProperty("--sy", y); $("subPrev").style.setProperty("--sh", h);
+}
+function renderVoices(){
+  const cur = prefs.voice || "여성 밝음";
+  $("voices").innerHTML = VOICES.map(([k, id, d]) => {
+    const a = samples[id];
+    return `<div class="voice" role="button" tabindex="0" data-v="${k}" aria-pressed="${k === cur}"><div><b>${k}</b><span>${d}</span></div>${a ? `<a class="play" href="${esc(a)}" target="_blank" rel="noopener" aria-label="${k} 듣기">▶</a>` : ""}</div>`;
+  }).join("");
+  $("sampleNote").innerHTML = Object.keys(samples).length
+    ? `<span>▶를 누르면 새 창에서 샘플이 재생돼요</span>`
+    : `<span>샘플을 한 번 만들어두면 미리 들어볼 수 있어요 (약 3분)</span><button id="mkSample">샘플 만들기</button>`;
+}
+$("voices").addEventListener("click", e => {
+  if (e.target.closest(".play")) return;
+  const v = e.target.closest(".voice"); if (!v) return;
+  document.querySelectorAll("#voices .voice").forEach(x => x.setAttribute("aria-pressed", x === v ? "true" : "false")); savePrefs();
+});
+$("sampleNote").addEventListener("click", async e => {
+  if (e.target.id !== "mkSample") return; e.target.disabled = true; e.target.textContent = "요청 중…";
+  try { await dispatch({ mode:"samples" }); toast("샘플 만들기 시작! 3분 뒤 ▶ 버튼이 생겨요"); setTimeout(loadRuns, 4000); startPoll(); }
+  catch (err) { toast(err.message); e.target.disabled = false; e.target.textContent = "샘플 만들기"; }
+});
+document.querySelectorAll(".seg").forEach(seg => seg.addEventListener("click", () => setTimeout(savePrefs)));
+$("reviewSw").onclick = () => { const t = $("reviewTg"); t.setAttribute("aria-checked", t.getAttribute("aria-checked") === "true" ? "false" : "true"); savePrefs(); };
+// 저장된 설정 불러오기
+if (prefs.len) setSeg("len", prefs.len); if (prefs.spd) setSeg("spd", prefs.spd);
+if (prefs.size) setSeg("size", prefs.size); if (prefs.pos) setSeg("pos", prefs.pos);
+$("reviewTg").setAttribute("aria-checked", prefs.review ? "true" : "false");
+renderVoices(); updPrev();
+
+function opts(){ return { length:pick("len"), voice:curVoice(), speed:pick("spd"), sub_size:pick("size"), sub_pos:pick("pos") }; }
+async function dispatch(inputs){
+  await gh(`/actions/workflows/${WF}/dispatches`, { method:"POST", headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({ ref:"main", inputs:{ ...opts(), ...inputs } }) });
+}
+const b64e = str => { const bytes = new TextEncoder().encode(str); let bin = ""; for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]); return btoa(bin); };
+const b64d = b => new TextDecoder().decode(Uint8Array.from(atob(b), c => c.charCodeAt(0)));
+function hidden(body){ const m = /<!--SCRIPT:([A-Za-z0-9+/=]+)-->/.exec(body || ""); if (!m) return null; try { return JSON.parse(b64d(m[1])); } catch (e) { return null; } }
 
 $("make").onclick = async () => {
   const topic = $("topic").value.trim();
   if (!topic) { msg("makeMsg","주제를 입력해주세요.","err"); $("topic").focus(); return; }
   $("make").disabled = true; $("make").textContent = "주문 넣는 중…"; msg("makeMsg","");
   try {
-    await gh(`/actions/workflows/${WF}/dispatches`, { method:"POST", headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({ ref:"main", inputs:{ topic, length:pick("len"), voice:pick("voice"), speed:pick("spd") } }) });
-    msg("makeMsg","주문 완료! 약 8~10분 뒤 아래에 영상이 도착해요.","ok"); $("topic").value="";
+    const review = $("reviewTg").getAttribute("aria-checked") === "true";
+    await dispatch({ topic, mode: review ? "script" : "full" });
+    msg("makeMsg", review ? "대본 쓰는 중! 1~2분 뒤 '대본 확인 대기'에 나타나요." : "주문 완료! 약 8~10분 뒤 아래에 영상이 도착해요.", "ok"); $("topic").value="";
     setTimeout(loadRuns, 4000); startPoll();
   } catch (e) { msg("makeMsg", e.message, "err"); }
   $("make").disabled = false; $("make").textContent = "만들기";
@@ -273,10 +414,21 @@ function part(body, mark){
 
 async function loadShips(){
   try {
-    const rels = await gh(`/releases?per_page=12`);
-    ships = rels.map(r => { const b = (r.body || "").replace(/\r/g, "");
+    const all = await gh(`/releases?per_page=30`);
+    const sm = all.find(r => r.tag_name === "voice-samples");
+    samples = {}; (sm ? sm.assets : []).forEach(a => samples[a.name.replace(/\.mp3$/, "")] = a.browser_download_url);
+    renderVoices();
+    let hiddenDrafts = []; try { hiddenDrafts = JSON.parse(localStorage.getItem("sff_hidden") || "[]"); } catch (e) {}
+    drafts = all.filter(r => r.tag_name.startsWith("draft-") && !hiddenDrafts.includes(r.tag_name))
+      .map(r => ({ tag:r.tag_name, title:r.name.replace("[대본] ", ""), date:r.created_at, script:hidden(r.body) }));
+    $("draftWrap").hidden = !drafts.length;
+    $("drafts").innerHTML = drafts.map((d, i) => `<div class="draft" ${i ? 'style="margin-top:14px;padding-top:14px;border-top:1px solid var(--line)"' : ""}>
+      <div style="min-width:0"><b>${esc(d.title)}</b><small>${ago(d.date)} · 대본 완성</small></div>
+      <div class="btns"><button class="pill light" data-hide="${i}">버리기</button><button class="pill" data-open="${i}">확인·수정</button></div></div>`).join("");
+    const rels = all.filter(r => r.tag_name.startsWith("short-")).slice(0, 12);
+    ships = rels.map(r => { const b = (r.body || "").replace(/\r/g, "").replace(/<!--SCRIPT:[^>]*-->/, "");
       const pol = ((b.split("\n").find(l => l.startsWith("✅")) || "").split("/")[0] || "").replace(/✅|정책 검사:/g, "").trim();
-      return { title: part(b,"📌") || r.name, desc: part(b,"📝"), pin: part(b,"💬"), pol, warn: part(b,"⚠️"), asset:(r.assets||[])[0], date:r.created_at }; });
+      return { title: part(b,"📌") || r.name, desc: part(b,"📝"), pin: part(b,"💬"), pol, warn: part(b,"⚠️"), asset:(r.assets||[])[0], date:r.created_at, script:hidden(r.body) }; });
     if (!ships.length) { $("ships").innerHTML = `<section class="card"><div class="empty">완성된 영상이 여기에 쌓여요.</div></section>`; return; }
     $("ships").innerHTML = ships.map((s, i) => `
       <section class="card vid">
@@ -288,22 +440,75 @@ async function loadShips(){
           </div>
         </div>
         <div class="acts">
-          ${s.asset ? `<a class="act main" href="${esc(s.asset.browser_download_url)}" target="_blank" rel="noopener">${ICON.down}영상 받기</a>` : `<span></span>`}
+          ${s.asset ? `<a class="act main" href="${esc(s.asset.browser_download_url)}" target="_blank" rel="noopener">${ICON.down}받기</a>` : `<span></span>`}
           <button class="act" data-c="title" data-i="${i}">${ICON.copy}제목</button>
           <button class="act" data-c="desc" data-i="${i}">${ICON.text}설명</button>
           <button class="act" data-c="pin" data-i="${i}">${ICON.chat}댓글</button>
+          <button class="act" data-e="${i}" ${s.script ? "" : "disabled style=\"opacity:.4\""}>${ICON.edit}수정</button>
         </div>
         ${s.warn ? `<details><summary>⚠️ 고칠 점 보기</summary><pre>${esc(s.warn)}</pre></details>` : ""}
       </section>`).join("");
   } catch (e) { $("ships").innerHTML = `<section class="card"><div class="empty">${esc(e.message)}</div></section>`; }
 }
 $("ships").addEventListener("click", async e => {
+  const ed = e.target.closest("[data-e]");
+  if (ed && !ed.disabled) { const s = ships[+ed.dataset.e]; openEditor(s.script, null, "수정해서 다시 만들기"); return; }
   const b = e.target.closest("[data-c]"); if (!b) return;
   const t = ships[+b.dataset.i][b.dataset.c] || "";
   try { await navigator.clipboard.writeText(t); }
   catch (err) { const ta=document.createElement("textarea"); ta.value=t; document.body.appendChild(ta); ta.select(); document.execCommand("copy"); ta.remove(); }
   toast({title:"제목",desc:"설명",pin:"고정 댓글"}[b.dataset.c] + " 복사됐어요");
 });
+
+$("drafts").addEventListener("click", e => {
+  const o = e.target.closest("[data-open]"), h = e.target.closest("[data-hide]");
+  if (o) { const d = drafts[+o.dataset.open]; if (d.script) openEditor(d.script, d.tag, "대본 확인"); else toast("대본을 읽지 못했어요"); }
+  if (h) { if (!confirm("이 대본을 버릴까요?")) return; let l = []; try { l = JSON.parse(localStorage.getItem("sff_hidden") || "[]"); } catch (er) {}
+    l.push(drafts[+h.dataset.hide].tag); try { localStorage.setItem("sff_hidden", JSON.stringify(l)); } catch (er) {} loadShips(); }
+});
+function sceneHTML(sc, i){
+  return `<div class="scene" data-i="${i}"><div class="scene-h"><span>장면 ${i + 1}</span><button data-del="${i}">삭제</button></div>
+    <textarea class="n" rows="2">${esc(sc.narration || "")}</textarea>
+    <details><summary>자막 줄 나누기 직접 고치기</summary><textarea class="s" rows="3" style="margin-top:8px" placeholder="한 줄에 자막 하나씩">${esc((sc.subs || []).join("\n"))}</textarea></details></div>`;
+}
+function readScenes(){
+  return [...document.querySelectorAll("#eScenes .scene")].map((el, i) => {
+    const old = edit.script.scenes[+el.dataset.i] || {};
+    return { ...old, narration: el.querySelector(".n").value.trim(), subs: el.querySelector(".s").value.split("\n").map(x => x.trim()).filter(Boolean) };
+  }).filter(sc => sc.narration);
+}
+function drawScenes(list){ $("eScenes").innerHTML = list.map(sceneHTML).join(""); edit.script.scenes = list; }
+function openEditor(script, draftTag, title){
+  if (!script) return toast("이 영상은 수정 기능 전에 만든 영상이라 고칠 수 없어요");
+  edit = { script: JSON.parse(JSON.stringify(script)), draft: draftTag };
+  $("sheetTitle").textContent = title; $("eGo").textContent = draftTag ? "이 대본으로 영상 만들기" : "수정해서 다시 만들기";
+  $("eH1").value = script.hook_line1 || ""; $("eH2").value = script.hook_line2 || "";
+  $("eTitle").value = script.title || ""; $("eDesc").value = script.description || "";
+  drawScenes(edit.script.scenes || []);
+  const o = opts(); $("eInfo").textContent = `${o.voice} · ${o.length}초 · 자막 ${o.sub_size}/${o.sub_pos} 설정으로 만들어요`;
+  $("sheet").hidden = false; document.body.style.overflow = "hidden"; $("sheet").scrollTop = 0;
+}
+function closeEditor(){ $("sheet").hidden = true; document.body.style.overflow = ""; edit = null; }
+$("sheetClose").onclick = () => { if (confirm("고친 내용이 저장되지 않아요. 닫을까요?")) closeEditor(); };
+$("eScenes").addEventListener("click", e => {
+  const d = e.target.closest("[data-del]"); if (!d) return;
+  const list = readScenes(); list.splice(+d.dataset.del, 1); drawScenes(list);
+});
+$("eAdd").onclick = () => { const list = readScenes(); list.push({ narration:"", subs:[], keyword_en:"" }); drawScenes(list);
+  const ts = document.querySelectorAll("#eScenes .n"); ts[ts.length - 1].focus(); };
+$("eGo").onclick = async () => {
+  const scenes = readScenes();
+  if (scenes.length < 2) return toast("장면이 2개 이상 있어야 해요");
+  const sc = { ...edit.script, hook_line1:$("eH1").value.trim(), hook_line2:$("eH2").value.trim(),
+    title:$("eTitle").value.trim(), description:$("eDesc").value.trim(), scenes };
+  $("eGo").disabled = true; $("eGo").textContent = "주문 넣는 중…";
+  try {
+    await dispatch({ topic: sc.topic || sc.title, mode:"full", script: b64e(JSON.stringify(sc)), draft: edit.draft || "" });
+    if (edit.draft) { let l = []; try { l = JSON.parse(localStorage.getItem("sff_hidden") || "[]"); } catch (er) {} l.push(edit.draft); try { localStorage.setItem("sff_hidden", JSON.stringify(l)); } catch (er) {} }
+    closeEditor(); toast("주문 완료! 8~10분 뒤 도착해요"); loadShips(); setTimeout(loadRuns, 4000); startPoll();
+  } catch (err) { toast(err.message); }
+  $("eGo").disabled = false;
+};
 
 function startPoll(){ if (!poll) poll = setInterval(loadRuns, 15000); }
 function stopPoll(reload){ if (poll) { clearInterval(poll); poll = null; if (reload) loadShips(); } }
