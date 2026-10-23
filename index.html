@@ -192,8 +192,11 @@ pre{white-space:pre-wrap;word-break:break-all;font-family:inherit;font-size:13px
       <p class="desc">주제만 적으면 대본·목소리·편집까지 자동으로 만들어요.</p>
       <textarea id="topic" rows="3" placeholder="예) 자기 전 스마트폰 30분이 몸에 주는 변화"></textarea>
       <div class="ideas" id="ideas"></div>
+      <button class="idea" id="askIdeas" style="margin-top:8px;color:var(--accent);border-color:var(--accent)">💡 키워드로 추천 주제 10개 받기</button>
+      <div id="ideaBox" hidden style="margin-top:10px;padding:12px;border-radius:14px;background:var(--soft)"></div>
       <div class="opt" style="margin-top:18px"><label style="font-size:13px;font-weight:700;color:var(--sub);display:block;margin-bottom:8px">화면에 쓸 영상</label>
-        <div class="seg" data-name="src"><button aria-pressed="true" data-v="stock">무료 영상</button><button aria-pressed="false" data-v="own">내 영상</button><button aria-pressed="false" data-v="long">링크</button></div></div>
+        <div class="seg" data-name="src"><button aria-pressed="true" data-v="stock">무료 영상</button><button aria-pressed="false" data-v="real">실제 자료</button><button aria-pressed="false" data-v="own">내 영상</button><button aria-pressed="false" data-v="long">링크</button></div>
+        <div class="mini" id="realNote" hidden>실화·사건·우주·연구 주제에 좋아요. 위키미디어 커먼즈·NASA의 <b>자유 이용 실제 사진·기록 영상</b>을 찾아 쓰고, 출처는 설명란에 자동으로 적어요.</div></div>
       <div class="src-box" id="longBox" hidden>
         <b style="font-size:15px">링크로 가져오기</b>
         <div class="mini" style="margin-top:2px">유튜브, 인스타그램, 구글 드라이브, 비메오, 인터넷 아카이브, 위키미디어 커먼즈 링크를 붙여넣으세요.</div>
@@ -423,16 +426,17 @@ renderVoices(); updPrev();
 
 function look(extra){
   const o = { sub_size:pick("size"), sub_pos:pick("pos"), hook_size:pick("hook"), audio:pick("audio"), fill:pick("fill"),
-              style:pick("style"), rights:pick("rights"), ...(extra||{}) };
+              style:pick("style"), rights:pick("rights"), src: pick("src") === "real" ? "real" : "", ...(extra||{}) };
   return Object.entries(o).map(([k, v]) => `${k}=${v}`).join(";");
 }
 let clips = null; let picked = [];
 const BR = "media";   // 내 영상이 저장되는 보관함(브랜치)
 function updSrc(){
   const src = pick("src"), own = src === "own", lng = src === "long";
-  $("ownBox").hidden = !own; $("longBox").hidden = !lng; $("reviewSw").hidden = src !== "stock";
+  const stockLike = src === "stock" || src === "real";
+  $("ownBox").hidden = !own; $("longBox").hidden = !lng; $("reviewSw").hidden = !stockLike; $("realNote").hidden = src !== "real";
   $("mixBox").hidden = !((own && pick("otype") === "one") || (lng && pick("ltype") === "one"));
-  $("topic").placeholder = src === "stock" ? "예) 자기 전 스마트폰 30분이 몸에 주는 변화" : "주제 힌트 (비워두면 AI가 영상 보고 정해요)";
+  $("topic").placeholder = src === "real" ? "예) 1947년 로즈웰 UFO 사건의 진실" : stockLike ? "예) 자기 전 스마트폰 30분이 몸에 주는 변화" : "주제 힌트 (비워두면 AI가 영상 보고 정해요)";
   if (own && clips === null) loadClips();
 }
 async function loadClips(){
@@ -598,6 +602,34 @@ function ccHint(){
 }
 $("ownCredit").addEventListener("change", ccHint);
 
+// 💡 추천 주제
+$("askIdeas").onclick = async () => {
+  const kw = $("topic").value.trim();
+  if (!kw) { msg("makeMsg","주제 칸에 키워드를 먼저 써주세요. 예) 외계인, 다이어트, 수면","err"); $("topic").focus(); return; }
+  $("askIdeas").disabled = true; $("askIdeas").textContent = "💡 추천 주제 뽑는 중… (약 1분)";
+  try { await dispatch({ topic: kw, mode: "ideas" }); ideaWait = Date.now(); startPoll(); setTimeout(loadRuns, 4000); }
+  catch (e) { msg("makeMsg", e.message, "err"); $("askIdeas").disabled = false; $("askIdeas").textContent = "💡 추천 주제 10개 받기"; }
+};
+let ideaWait = 0;
+function showIdeas(rel){
+  if (!rel) return;
+  const m = /<!--IDEAS:([A-Za-z0-9+/=]+)-->/.exec(rel.body || ""); if (!m) return;
+  let items = []; try { items = JSON.parse(b64d(m[1])); } catch (e) { return; }
+  $("ideaBox").hidden = false;
+  $("ideaBox").innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><b style="font-size:14px">${esc(rel.name.replace("[추천] ", ""))} 추천 주제</b><button class="x" id="ideaClose" style="border:0;background:none;color:var(--sub);cursor:pointer">닫기</button></div>`
+    + items.map((x, i) => `<button class="clip" data-idea="${i}" style="width:100%;text-align:left;margin-bottom:6px"><div><b style="white-space:normal">${esc(x.topic)}</b><small>${esc(x.why || "")}${x.src === "real" ? " · 📷 실제 자료 추천" : ""}</small></div></button>`).join("");
+  $("ideaBox").onclick = e => {
+    if (e.target.id === "ideaClose") { $("ideaBox").hidden = true; return; }
+    const b = e.target.closest("[data-idea]"); if (!b) return;
+    const x = items[+b.dataset.idea]; $("topic").value = x.topic;
+    if (x.src === "real") setSeg("src", "real"); else if (pick("src") === "real") setSeg("src", "stock");
+    savePrefs(); $("topic").scrollIntoView({ behavior:"smooth", block:"center" }); toast("주제를 넣었어요");
+  };
+  if (ideaWait && new Date(rel.created_at).getTime() > ideaWait - 60000) {
+    ideaWait = 0; $("askIdeas").disabled = false; $("askIdeas").textContent = "💡 추천 주제 10개 받기"; toast("추천 주제가 도착했어요");
+  }
+}
+
 function opts(extra){ return { length:pick("len"), voice:curVoice(), speed:pick("spd"), look:look(extra) }; }
 async function dispatch(inputs){
   await gh(`/actions/workflows/${WF}/dispatches`, { method:"POST", headers:{"Content-Type":"application/json"},
@@ -615,10 +647,10 @@ $("make").onclick = async () => {
   if (own && pick("otype") === "hl" && picked.length !== 1) { msg("makeMsg","하이라이트는 긴 영상 1개만 골라주세요.","err"); return; }
   if (lng && !/^https?:\/\/\S+/.test(url)) { msg("makeMsg","영상 링크를 붙여넣어 주세요.","err"); $("longUrl").focus(); return; }
   if (lng && /instagram\.com/.test(url) && pick("rights") === "cc") { msg("makeMsg","인스타그램 영상은 '내 영상' 또는 '허락받음'일 때만 쓸 수 있어요.","err"); return; }
-  if (src === "stock" && !topic) { msg("makeMsg","주제를 입력해주세요.","err"); $("topic").focus(); return; }
+  if ((src === "stock" || src === "real") && !topic) { msg("makeMsg","주제를 입력해주세요.","err"); $("topic").focus(); return; }
   $("make").disabled = true; $("make").textContent = "주문 넣는 중…"; msg("makeMsg","");
   try {
-    const review = src === "stock" && $("reviewTg").getAttribute("aria-checked") === "true";
+    const review = (src === "stock" || src === "real") && $("reviewTg").getAttribute("aria-checked") === "true";
     await dispatch(own ? { topic, mode: pick("otype") === "hl" ? "long" : "own", media: picked.join("|"), credit: $("ownCredit").value.trim() }
       : lng ? { topic, mode: pick("ltype") === "hl" ? "long" : "own", media: url, credit: $("longCredit").value.trim() }
       : { topic, mode: review ? "script" : "full" });
@@ -680,6 +712,7 @@ async function loadShips(){
     samples = {}; (sm ? sm.assets : []).forEach(a => samples[a.name.replace(/\.mp3$/, "")] = a.browser_download_url);
     renderVoices();
     let hiddenDrafts = []; try { hiddenDrafts = JSON.parse(localStorage.getItem("sff_hidden") || "[]"); } catch (e) {}
+    showIdeas(all.find(r => r.tag_name.startsWith("ideas-")));
     drafts = all.filter(r => r.tag_name.startsWith("draft-") && !hiddenDrafts.includes(r.tag_name))
       .map(r => ({ tag:r.tag_name, title:r.name.replace("[대본] ", ""), date:r.created_at, script:hidden(r.body) }));
     $("draftWrap").hidden = !drafts.length;
