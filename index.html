@@ -217,6 +217,8 @@ pre{white-space:pre-wrap;word-break:break-all;font-family:inherit;font-size:13px
           <b>＋ 영상 추가</b><span id="dropHint">휴대폰은 사진첩에서, 컴퓨터는 파일을 골라요 (끌어다 놓아도 돼요)</span>
         </label>
         <div class="mini" id="upMsg" role="status"></div>
+        <div class="opt" style="margin-top:14px"><label>만들기 방식</label>
+          <div class="seg" data-name="otype"><button aria-pressed="true" data-v="one">쇼츠 1개</button><button aria-pressed="false" data-v="hl">긴 영상 → 하이라이트 3개</button></div></div>
       </div>
       <div class="src-box" id="mixBox" hidden>
         <div class="opt"><label>소리</label>
@@ -365,7 +367,7 @@ document.querySelectorAll(".seg").forEach(seg => seg.onclick = e => {
 });
 const pick = name => document.querySelector(`.seg[data-name="${name}"] [aria-pressed="true"]`).dataset.v;
 function savePrefs(){
-  prefs = { len:pick("len"), spd:pick("spd"), size:pick("size"), pos:pick("pos"), hook:pick("hook"), src:pick("src"), ltype:pick("ltype"), audio:pick("audio"), fill:pick("fill"),
+  prefs = { len:pick("len"), spd:pick("spd"), size:pick("size"), pos:pick("pos"), hook:pick("hook"), src:pick("src"), ltype:pick("ltype"), otype:pick("otype"), audio:pick("audio"), fill:pick("fill"),
             voice:curVoice(), review:$("reviewTg").getAttribute("aria-checked")==="true" };
   try { localStorage.setItem(SET, JSON.stringify(prefs)); } catch (e) {}
   updPrev(); updSrc();
@@ -403,7 +405,7 @@ $("reviewSw").onclick = () => { const t = $("reviewTg"); t.setAttribute("aria-ch
 // 저장된 설정 불러오기
 if (prefs.len) setSeg("len", prefs.len); if (prefs.spd) setSeg("spd", prefs.spd);
 if (prefs.size) setSeg("size", prefs.size); if (prefs.pos) setSeg("pos", prefs.pos);
-["hook","src","audio","fill","ltype"].forEach(k => { if (prefs[k]) setSeg(k, prefs[k]); });
+["hook","src","audio","fill","ltype","otype"].forEach(k => { if (prefs[k]) setSeg(k, prefs[k]); });
 $("reviewTg").setAttribute("aria-checked", prefs.review ? "true" : "false");
 renderVoices(); updPrev();
 
@@ -416,7 +418,7 @@ const BR = "media";   // 내 영상이 저장되는 보관함(브랜치)
 function updSrc(){
   const src = pick("src"), own = src === "own", lng = src === "long";
   $("ownBox").hidden = !own; $("longBox").hidden = !lng; $("reviewSw").hidden = src !== "stock";
-  $("mixBox").hidden = !(own || (lng && pick("ltype") === "one"));
+  $("mixBox").hidden = !((own && pick("otype") === "one") || (lng && pick("ltype") === "one"));
   $("topic").placeholder = src === "stock" ? "예) 자기 전 스마트폰 30분이 몸에 주는 변화" : "주제 힌트 (비워두면 AI가 영상 보고 정해요)";
   if (own && clips === null) loadClips();
 }
@@ -478,8 +480,11 @@ function postBlob(b64, onProg){
 async function upload(files){
   files = [...files].filter(f => f.type.startsWith("video/") || /\.(mp4|mov|m4v|webm)$/i.test(f.name));
   if (!files.length) return;
-  const big = files.find(f => f.size > 500 * 1048576);
-  if (big) { $("upMsg").textContent = `${big.name} 파일이 ${(big.size / 1048576).toFixed(0)}MB라 너무 커요. 필요한 부분만 잘라서 올려주세요.`; return; }
+  const big = files.find(f => f.size > 2048 * 1048576);
+  if (big) { $("upMsg").textContent = `${big.name} 파일이 ${(big.size / 1048576).toFixed(0)}MB라 너무 커요(최대 2GB). 구글 드라이브 링크로 해주세요.`; return; }
+  const sum = files.reduce((a, f) => a + f.size, 0);
+  if (sum > 300 * 1048576 && !confirm(`총 ${(sum / 1048576).toFixed(0)}MB라 시간이 꽤 걸려요.\n올리는 동안 화면을 켜둔 채 이 앱을 열어두세요.\n중간에 끊겨도 다시 고르면 이어서 올라가요. 시작할까요?`)) { $("file").value = ""; return; }
+  let lock = null; try { lock = await navigator.wakeLock.request("screen"); } catch (e) {}   // 올리는 동안 화면 꺼짐 방지
   $("drop").style.pointerEvents = "none";
   try {
     const total = files.reduce((a, f) => a + f.size, 0), done = files.map(() => 0), t0 = Date.now();
@@ -492,20 +497,27 @@ async function upload(files){
     show();
     // 큰 영상은 15MB 조각으로 나눠서 3개씩 동시에 올려요 (GitHub 한 번에 받는 크기 제한 때문)
     const CH = 15 * 1048576, jobs = [], changes = [];
-    files.forEach((f, i) => { const base = safeName(f, i), n = Math.max(1, Math.ceil(f.size / CH));
+    const keyOf = f => `sff_up:${f.name}:${f.size}:${f.lastModified}`;
+    const resume = files.map(f => { try { return JSON.parse(localStorage.getItem(keyOf(f)) || "null"); } catch (e) { return null; } });
+    files.forEach((f, i) => { const base = (resume[i] && resume[i].base) || safeName(f, i), n = Math.max(1, Math.ceil(f.size / CH));
+      if (!resume[i]) resume[i] = { base, shas: {} };
       for (let k = 0; k < n; k++) jobs.push({ i, base, k, part: f.slice(k * CH, Math.min(f.size, (k + 1) * CH)) }); });
-    const prog = jobs.map(() => 0);
+    const prog = jobs.map(j => resume[j.i].shas[j.k] ? 1 : 0);   // 전에 올린 조각은 건너뛰기
+    jobs.forEach(j => { if (resume[j.i].shas[j.k]) changes.push({ name: `${j.base}.p${String(j.k + 1).padStart(3, "0")}`, sha: resume[j.i].shas[j.k] }); });
     const upd = () => { files.forEach((f, i) => { done[i] = jobs.reduce((a, j, q) => a + (j.i === i ? prog[q] * j.part.size : 0), 0) / f.size; }); show(); };
     let next = 0;
     const worker = async () => {
       while (next < jobs.length) {
         const q = next++, j = jobs[q];
+        if (resume[j.i].shas[j.k]) continue;
         let blob, tries = 0;
         while (true) {
           try { blob = await postBlob(await readB64(j.part), p => { prog[q] = p; upd(); }); break; }
           catch (e) { if (++tries >= 3) throw e; await new Promise(r => setTimeout(r, 2000)); }
         }
         prog[q] = 1; upd();
+        resume[j.i].shas[j.k] = blob.sha;
+        try { localStorage.setItem(keyOf(files[j.i]), JSON.stringify(resume[j.i])); } catch (e) {}
         changes.push({ name: `${j.base}.p${String(j.k + 1).padStart(3, "0")}`, sha: blob.sha });
       }
     };
@@ -513,11 +525,13 @@ async function upload(files){
     const added = [...new Set(jobs.map(j => j.base))];
     $("upMsg").textContent = "보관함에 저장하는 중…";
     await commitMedia(changes, `내 영상 ${added.length}개 추가`);
+    files.forEach(f => { try { localStorage.removeItem(keyOf(f)); } catch (e) {} });
     picked.push(...added);
     $("upMsg").textContent = `${added.length}개 올렸어요 ✓`; toast("영상을 올렸어요");
     await loadClips();
-  } catch (e) { $("upMsg").textContent = "올리지 못했어요: " + e.message; }
+  } catch (e) { $("upMsg").textContent = "올리지 못했어요: " + e.message + " · 같은 영상을 다시 고르면 끊긴 곳부터 이어서 올라가요."; }
   $("drop").style.pointerEvents = ""; $("file").value = "";
+  try { if (lock) lock.release(); } catch (e) {}
 }
 $("file").onchange = e => upload(e.target.files);
 ["dragover","dragenter"].forEach(t => $("drop").addEventListener(t, e => { e.preventDefault(); $("drop").classList.add("on"); }));
@@ -549,17 +563,18 @@ $("make").onclick = async () => {
   const src = pick("src"), own = src === "own", lng = src === "long";
   const url = $("longUrl").value.trim();
   if (own && !picked.length) { msg("makeMsg","보관함에서 쓸 영상을 골라주세요.","err"); return; }
+  if (own && pick("otype") === "hl" && picked.length !== 1) { msg("makeMsg","하이라이트는 긴 영상 1개만 골라주세요.","err"); return; }
   if (lng && !/^https?:\/\/\S+/.test(url)) { msg("makeMsg","롱폼 링크를 붙여넣어 주세요.","err"); $("longUrl").focus(); return; }
   if (src === "stock" && !topic) { msg("makeMsg","주제를 입력해주세요.","err"); $("topic").focus(); return; }
   $("make").disabled = true; $("make").textContent = "주문 넣는 중…"; msg("makeMsg","");
   try {
     const review = src === "stock" && $("reviewTg").getAttribute("aria-checked") === "true";
-    await dispatch(own ? { topic, mode:"own", media: picked.join("|") }
+    await dispatch(own ? { topic, mode: pick("otype") === "hl" ? "long" : "own", media: picked.join("|") }
       : lng ? { topic, mode: pick("ltype") === "hl" ? "long" : "own", media: url }
       : { topic, mode: review ? "script" : "full" });
     if (lng) $("longUrl").value = "";
     msg("makeMsg", review ? "대본 쓰는 중! 1~2분 뒤 '대본 확인 대기'에 나타나요."
-      : lng ? "주문 완료! 롱폼은 길이에 따라 15~40분 걸려요. 완성되면 아래에 도착해요."
+      : (lng || (own && pick("otype") === "hl")) ? "주문 완료! 긴 영상은 길이에 따라 15~40분 걸려요. 완성되면 아래에 도착해요."
       : "주문 완료! 약 8~10분 뒤 아래에 영상이 도착해요.", "ok"); $("topic").value="";
     setTimeout(loadRuns, 4000); startPoll();
   } catch (e) { msg("makeMsg", e.message, "err"); }
