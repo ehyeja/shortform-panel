@@ -140,6 +140,8 @@ pre{white-space:pre-wrap;word-break:break-all;font-family:inherit;font-size:13px
 .up{display:flex;gap:8px;flex-wrap:wrap}
 .up a,.up button{flex:1;text-align:center;border:0;border-radius:10px;padding:11px;font-size:14px;font-weight:700;background:var(--card);color:var(--ink);text-decoration:none;cursor:pointer}
 .mini{font-size:12px;color:var(--sub);margin-top:8px}
+.cin{width:100%;margin-top:6px;border:1.5px solid var(--line);background:var(--card);border-radius:12px;padding:11px 13px;font-size:14px}
+.hint{font-size:12px;margin-top:6px;padding:8px 10px;border-radius:10px;background:var(--warn-soft);color:var(--warn)}
 /* 대본 편집기 */
 .sheet{position:fixed;inset:0;background:var(--bg);z-index:20;overflow-y:auto;padding-top:env(safe-area-inset-top,0px)}
 .sheet-in{max-width:640px;margin:0 auto;padding:12px 16px 140px}
@@ -194,8 +196,11 @@ pre{white-space:pre-wrap;word-break:break-all;font-family:inherit;font-size:13px
         <div class="seg" data-name="src"><button aria-pressed="true" data-v="stock">무료 영상</button><button aria-pressed="false" data-v="own">내 영상</button><button aria-pressed="false" data-v="long">롱폼 링크</button></div></div>
       <div class="src-box" id="longBox" hidden>
         <b style="font-size:15px">롱폼 영상 링크</b>
-        <div class="mini" style="margin-top:2px">구글 드라이브 또는 유튜브 링크를 붙여넣으세요.</div>
-        <input type="text" id="longUrl" inputmode="url" placeholder="https://drive.google.com/... 또는 https://youtu.be/..." style="width:100%;margin-top:10px;border:1.5px solid var(--line);background:var(--card);border-radius:12px;padding:12px 14px;font-size:15px">
+        <div class="mini" style="margin-top:2px">구글 드라이브, 비메오, 인터넷 아카이브, 위키미디어 커먼즈 링크를 붙여넣으세요.</div>
+        <input type="text" id="longUrl" inputmode="url" placeholder="https://..." style="width:100%;margin-top:10px;border:1.5px solid var(--line);background:var(--card);border-radius:12px;padding:12px 14px;font-size:15px">
+        <div class="hint" id="longHint" hidden></div>
+        <div class="opt" style="margin-top:14px"><label>원본 출처 (비워두면 링크에서 자동으로 찾아요)</label>
+          <input class="cin" id="longCredit" placeholder="예) 「영상 제목」 · 제작자 · CC BY"></div>
         <div class="opt" style="margin-top:14px"><label>만들기 방식</label>
           <div class="seg" data-name="ltype"><button aria-pressed="true" data-v="hl">하이라이트 3개</button><button aria-pressed="false" data-v="one">쇼츠 1개</button></div></div>
         <details style="margin-top:12px"><summary>구글 드라이브 링크 만드는 법</summary>
@@ -205,7 +210,7 @@ pre{white-space:pre-wrap;word-break:break-all;font-family:inherit;font-size:13px
             <li>일반 액세스를 <b>링크가 있는 모든 사용자</b>로 변경</li>
             <li><b>링크 복사</b> → 여기에 붙여넣기</li>
           </ol>
-          <div class="mini">유튜브 링크는 유튜브가 막는 경우가 있어서, 안 되면 드라이브 링크로 해주세요.</div>
+          <div class="mini">유튜브 링크는 유튜브가 자동으로 가져오는 걸 막아요. 영상을 받아서 드라이브나 '내 영상'으로 올려주세요.</div>
         </details>
       </div>
       <div class="src-box" id="ownBox" hidden>
@@ -217,6 +222,9 @@ pre{white-space:pre-wrap;word-break:break-all;font-family:inherit;font-size:13px
           <b>＋ 영상 추가</b><span id="dropHint">휴대폰은 사진첩에서, 컴퓨터는 파일을 골라요 (끌어다 놓아도 돼요)</span>
         </label>
         <div class="mini" id="upMsg" role="status"></div>
+        <div class="opt" style="margin-top:14px"><label>다른 사람의 CC 영상이라면 원본 출처</label>
+          <input class="cin" id="ownCredit" placeholder="예) 「영상 제목」 · 채널 이름 · https://원본 링크 · CC BY">
+          <div class="mini">적으면 유튜브 설명란에 출처가 자동으로 들어가요. 내가 찍은 영상이면 비워두세요.</div></div>
         <div class="opt" style="margin-top:14px"><label>만들기 방식</label>
           <div class="seg" data-name="otype"><button aria-pressed="true" data-v="one">쇼츠 1개</button><button aria-pressed="false" data-v="hl">긴 영상 → 하이라이트 3개</button></div></div>
       </div>
@@ -549,6 +557,26 @@ $("clips").addEventListener("click", async e => {
   drawClips();
 });
 
+// 링크 종류에 따라 안내 + 남의 CC 영상이면 안전한 설정으로
+function longHint(){
+  const u = $("longUrl").value.trim(), h = $("longHint");
+  if (!u) { h.hidden = true; return; }
+  if (/youtu\.?be/.test(u)) { h.hidden = false; h.textContent = "유튜브 링크는 막혀서 못 가져와요. 영상을 내려받아 구글 드라이브 링크나 '내 영상'으로 올려주세요."; return; }
+  if (!/drive\.google\.com/.test(u)) {
+    h.hidden = false;
+    h.textContent = "남의 CC 영상이에요. 출처는 자동으로 적어줄게요. 하이라이트(원본 그대로 자르기)보다 '쇼츠 1개 + AI 설명'이 재사용 콘텐츠 걱정 없이 안전해요.";
+    if (!longHint.done) { setSeg("ltype", "one"); setSeg("audio", "ai_mix"); longHint.done = true; savePrefs(); }
+    return;
+  }
+  h.hidden = true;
+}
+$("longUrl").addEventListener("input", longHint);
+function ccHint(){
+  const has = $("ownCredit").value.trim();
+  if (has && pick("audio") === "original") toast("남의 영상은 '원본만'보다 AI 설명을 넣는 게 안전해요");
+}
+$("ownCredit").addEventListener("change", ccHint);
+
 function opts(extra){ return { length:pick("len"), voice:curVoice(), speed:pick("spd"), look:look(extra) }; }
 async function dispatch(inputs){
   await gh(`/actions/workflows/${WF}/dispatches`, { method:"POST", headers:{"Content-Type":"application/json"},
@@ -569,10 +597,10 @@ $("make").onclick = async () => {
   $("make").disabled = true; $("make").textContent = "주문 넣는 중…"; msg("makeMsg","");
   try {
     const review = src === "stock" && $("reviewTg").getAttribute("aria-checked") === "true";
-    await dispatch(own ? { topic, mode: pick("otype") === "hl" ? "long" : "own", media: picked.join("|") }
-      : lng ? { topic, mode: pick("ltype") === "hl" ? "long" : "own", media: url }
+    await dispatch(own ? { topic, mode: pick("otype") === "hl" ? "long" : "own", media: picked.join("|"), credit: $("ownCredit").value.trim() }
+      : lng ? { topic, mode: pick("ltype") === "hl" ? "long" : "own", media: url, credit: $("longCredit").value.trim() }
       : { topic, mode: review ? "script" : "full" });
-    if (lng) $("longUrl").value = "";
+    if (lng) { $("longUrl").value = ""; $("longCredit").value = ""; longHint.done = false; longHint(); }
     msg("makeMsg", review ? "대본 쓰는 중! 1~2분 뒤 '대본 확인 대기'에 나타나요."
       : (lng || (own && pick("otype") === "hl")) ? "주문 완료! 긴 영상은 길이에 따라 15~40분 걸려요. 완성되면 아래에 도착해요."
       : "주문 완료! 약 8~10분 뒤 아래에 영상이 도착해요.", "ok"); $("topic").value="";
@@ -718,7 +746,7 @@ $("eGo").onclick = async () => {
   try {
     const ownEdit = !!sc.media;
     await dispatch({ topic: sc.topic || sc.title, mode: ownEdit ? "own" : "full", script: b64e(JSON.stringify(sc)), draft: edit.draft || "",
-      ...(ownEdit ? { media: sc.media, _look: { audio: sc.audio || "ai_mix", fill: sc.fill || "stock" } } : {}) });
+      ...(ownEdit ? { media: sc.media, credit: sc.credit || "", _look: { audio: sc.audio || "ai_mix", fill: sc.fill || "stock" } } : {}) });
     if (edit.draft) { let l = []; try { l = JSON.parse(localStorage.getItem("sff_hidden") || "[]"); } catch (er) {} l.push(edit.draft); try { localStorage.setItem("sff_hidden", JSON.stringify(l)); } catch (er) {} }
     closeEditor(); toast("주문 완료! 8~10분 뒤 도착해요"); loadShips(); setTimeout(loadRuns, 4000); startPoll();
   } catch (err) { toast(err.message); }
