@@ -9,13 +9,19 @@
 <title>숏폼 공장</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎬</text></svg>">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&display=swap">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/GmarketSans/GmarketSans.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Paperlogy/Paperlogy.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/JalnanGothic/JalnanGothic.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/S-CoreDream/S-CoreDream.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/TmonMonsori/TmonMonsori.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Cafe24Ssurround/Cafe24Ssurround.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Cafe24SsurroundAir/Cafe24SsurroundAir.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Cafe24Danjunghae/Cafe24Danjunghae.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Cafe24Ssukssuk/Cafe24Ssukssuk.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Cafe24Ohsquare/Cafe24Ohsquare.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Cafe24Simplehae/Cafe24Simplehae.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Cafe24Dangdanghae/Cafe24Dangdanghae.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Cafe24Ohsquare/Cafe24Ohsquare.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Cafe24SsurroundAir/Cafe24SsurroundAir.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Cafe24Ssukssuk/Cafe24Ssukssuk.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Cafe24Simplehae/Cafe24Simplehae.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Cafe24Syongsyong/Cafe24Syongsyong.css">
 <style>
 :root{
@@ -151,13 +157,12 @@ pre{white-space:pre-wrap;word-break:break-all;font-family:inherit;font-size:13px
 .cin{width:100%;margin-top:6px;border:1.5px solid var(--line);background:var(--card);border-radius:12px;padding:11px 13px;font-size:14px}
 .hint{font-size:12px;margin-top:6px;padding:8px 10px;border-radius:10px;background:var(--warn-soft);color:var(--warn)}
 /* 폰트 고르기 */
-.fonts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.fnt{border:2px solid transparent;border-radius:12px;padding:12px 6px 8px;cursor:pointer;background:linear-gradient(160deg,#3a6073,#16222a);text-align:center;color:#fff}
-.fnt[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}
-.fnt .h{font-size:17px;color:#ffe500;line-height:1.2;text-shadow:-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,2px 2px 0 #000,0 3px 3px #000}
-.fnt .s{font-size:14px;margin-top:6px;text-shadow:-1.5px -1.5px 0 #000,1.5px -1.5px 0 #000,-1.5px 1.5px 0 #000,1.5px 1.5px 0 #000}
-.fnt .s i{font-style:normal;color:#ffd700}
-.fnt small{display:block;margin-top:8px;font-size:11px;color:#cfd8dc;font-family:Pretendard,sans-serif}
+.fonts{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.fnt{border:2px solid transparent;border-radius:10px;padding:8px 2px 5px;cursor:pointer;background:#1b2430;text-align:center;color:#fff;overflow:hidden}
+.fnt[aria-pressed="true"]{border-color:var(--accent)}
+.fnt .s{font-size:15px;line-height:1.15;letter-spacing:-.04em;white-space:nowrap;text-shadow:-1.5px -1.5px 0 #000,1.5px -1.5px 0 #000,-1.5px 1.5px 0 #000,1.5px 1.5px 0 #000}
+.fnt .s i{font-style:normal;color:#ffd400}
+.fnt small{display:block;margin-top:4px;font-size:10px;color:#9fb0bd;font-family:Pretendard,sans-serif;white-space:nowrap}
 /* 대본 편집기 */
 .sheet{position:fixed;inset:0;background:var(--bg);z-index:20;overflow-y:auto;padding-top:env(safe-area-inset-top,0px)}
 .sheet-in{max-width:640px;margin:0 auto;padding:12px 16px 140px}
@@ -279,8 +284,8 @@ pre{white-space:pre-wrap;word-break:break-all;font-family:inherit;font-size:13px
           <div class="sample-note" id="sampleNote"></div></div>
         <div class="opt"><label>말 속도</label>
           <div class="seg" data-name="spd"><button aria-pressed="false" data-v="10~20대 (빠르게)">빠르게</button><button aria-pressed="true" data-v="30대 (보통)">보통</button><button aria-pressed="false" data-v="40대 이상 (느리게)">느리게</button></div></div>
-        <div class="opt"><label>자막·제목 폰트 (카페24 폰트, 상업적 이용 무료)</label>
-          <div class="fonts" id="fonts"><button class="fnt" data-font="" aria-pressed="false" style="font-family:&quot;Pretendard&quot;,sans-serif"><div class="h">30분 달렸더니</div><div class="s">심장이 <i>더 튼튼</i>해져요</div><small>기본</small></button><button class="fnt" data-font="ssurround" aria-pressed="false" style="font-family:&quot;Cafe24 Ssurround&quot;,sans-serif"><div class="h">30분 달렸더니</div><div class="s">심장이 <i>더 튼튼</i>해져요</div><small>써라운드</small></button><button class="fnt" data-font="ssurround_air" aria-pressed="false" style="font-family:&quot;Cafe24 Ssurround Air&quot;,sans-serif"><div class="h">30분 달렸더니</div><div class="s">심장이 <i>더 튼튼</i>해져요</div><small>써라운드 에어</small></button><button class="fnt" data-font="danjunghae" aria-pressed="false" style="font-family:&quot;Cafe24 Danjunghae&quot;,sans-serif"><div class="h">30분 달렸더니</div><div class="s">심장이 <i>더 튼튼</i>해져요</div><small>단정해</small></button><button class="fnt" data-font="ssukssuk" aria-pressed="false" style="font-family:&quot;Cafe24 Ssukssuk&quot;,sans-serif"><div class="h">30분 달렸더니</div><div class="s">심장이 <i>더 튼튼</i>해져요</div><small>쑥쑥</small></button><button class="fnt" data-font="ohsquare" aria-pressed="false" style="font-family:&quot;Cafe24 Ohsquare&quot;,sans-serif"><div class="h">30분 달렸더니</div><div class="s">심장이 <i>더 튼튼</i>해져요</div><small>아네모네</small></button><button class="fnt" data-font="simplehae" aria-pressed="false" style="font-family:&quot;Cafe24 Simplehae&quot;,sans-serif"><div class="h">30분 달렸더니</div><div class="s">심장이 <i>더 튼튼</i>해져요</div><small>심플해</small></button><button class="fnt" data-font="dangdanghae" aria-pressed="false" style="font-family:&quot;Cafe24 Dangdanghae&quot;,sans-serif"><div class="h">30분 달렸더니</div><div class="s">심장이 <i>더 튼튼</i>해져요</div><small>당당해</small></button><button class="fnt" data-font="syongsyong" aria-pressed="false" style="font-family:&quot;Cafe24 Syongsyong&quot;,sans-serif"><div class="h">30분 달렸더니</div><div class="s">심장이 <i>더 튼튼</i>해져요</div><small>숑숑</small></button></div></div>
+        <div class="opt"><label>자막·제목 폰트 (모두 상업적 이용 무료)</label>
+          <div class="fonts" id="fonts"><button class="fnt" data-font="" aria-pressed="false" style="font-family:&quot;Pretendard&quot;,sans-serif;font-weight:900"><div class="s"><i>실화</i> 바탕!?</div><small>기본</small></button><button class="fnt" data-font="blackhansans" aria-pressed="false" style="font-family:&quot;Black Han Sans&quot;,sans-serif;font-weight:400"><div class="s"><i>실화</i> 바탕!?</div><small>블랙한산스</small></button><button class="fnt" data-font="gmarket" aria-pressed="false" style="font-family:&quot;Gmarket Sans&quot;,sans-serif;font-weight:700"><div class="s"><i>실화</i> 바탕!?</div><small>G마켓 산스</small></button><button class="fnt" data-font="pretendard" aria-pressed="false" style="font-family:&quot;Pretendard&quot;,sans-serif;font-weight:900"><div class="s"><i>실화</i> 바탕!?</div><small>프리텐다드</small></button><button class="fnt" data-font="paperlogy" aria-pressed="false" style="font-family:&quot;Paperlogy&quot;,sans-serif;font-weight:900"><div class="s"><i>실화</i> 바탕!?</div><small>페이퍼로지</small></button><button class="fnt" data-font="jalnan" aria-pressed="false" style="font-family:&quot;Jalnan Gothic&quot;,sans-serif;font-weight:400"><div class="s"><i>실화</i> 바탕!?</div><small>잘난체</small></button><button class="fnt" data-font="scdream" aria-pressed="false" style="font-family:&quot;S-Core Dream&quot;,sans-serif;font-weight:900"><div class="s"><i>실화</i> 바탕!?</div><small>에스코어 드림</small></button><button class="fnt" data-font="tmon" aria-pressed="false" style="font-family:&quot;Tmon Monsori&quot;,sans-serif;font-weight:400"><div class="s"><i>실화</i> 바탕!?</div><small>티몬 몬소리</small></button><button class="fnt" data-font="ssurround" aria-pressed="false" style="font-family:&quot;Cafe24 Ssurround&quot;,sans-serif;font-weight:400"><div class="s"><i>실화</i> 바탕!?</div><small>써라운드</small></button><button class="fnt" data-font="danjunghae" aria-pressed="false" style="font-family:&quot;Cafe24 Danjunghae&quot;,sans-serif;font-weight:400"><div class="s"><i>실화</i> 바탕!?</div><small>단정해</small></button><button class="fnt" data-font="dangdanghae" aria-pressed="false" style="font-family:&quot;Cafe24 Dangdanghae&quot;,sans-serif;font-weight:400"><div class="s"><i>실화</i> 바탕!?</div><small>당당해</small></button><button class="fnt" data-font="ohsquare" aria-pressed="false" style="font-family:&quot;Cafe24 Ohsquare&quot;,sans-serif;font-weight:400"><div class="s"><i>실화</i> 바탕!?</div><small>아네모네</small></button><button class="fnt" data-font="ssurround_air" aria-pressed="false" style="font-family:&quot;Cafe24 Ssurround Air&quot;,sans-serif;font-weight:400"><div class="s"><i>실화</i> 바탕!?</div><small>써라운드 에어</small></button><button class="fnt" data-font="ssukssuk" aria-pressed="false" style="font-family:&quot;Cafe24 Ssukssuk&quot;,sans-serif;font-weight:400"><div class="s"><i>실화</i> 바탕!?</div><small>쑥쑥</small></button><button class="fnt" data-font="simplehae" aria-pressed="false" style="font-family:&quot;Cafe24 Simplehae&quot;,sans-serif;font-weight:400"><div class="s"><i>실화</i> 바탕!?</div><small>심플해</small></button><button class="fnt" data-font="syongsyong" aria-pressed="false" style="font-family:&quot;Cafe24 Syongsyong&quot;,sans-serif;font-weight:400"><div class="s"><i>실화</i> 바탕!?</div><small>숑숑</small></button></div></div>
         <div class="opt"><label>제목 크기</label>
           <div class="seg" data-name="hook"><button aria-pressed="false" data-v="작게">작게</button><button aria-pressed="true" data-v="보통">보통</button><button aria-pressed="false" data-v="크게">크게</button></div></div>
         <div class="opt subrow">
@@ -301,19 +306,11 @@ pre{white-space:pre-wrap;word-break:break-all;font-family:inherit;font-size:13px
       <div class="msg" id="makeMsg" role="status"></div>
     </section>
 
-    <!-- 리뷰 공장 -->
-    <section class="card">
-      <details id="rvBox"><summary style="list-style:none;cursor:pointer"><h2 style="display:inline">🎬 리뷰 공장</h2> <span class="mini">드라마·영화 리뷰 (공식 예고편·CC 자료만)</span></summary>
-        <input class="cin" id="rvTitle" placeholder="작품명 예) 100일의 거짓말" style="margin-top:12px">
-        <div class="opt" style="margin-top:12px"><label>리뷰 관점</label>
-          <div class="seg" data-name="rvangle" style="flex-wrap:wrap"><button aria-pressed="true" data-v="실화 비교">실화</button><button aria-pressed="false" data-v="숨은 디테일">디테일</button><button aria-pressed="false" data-v="인물 분석">인물</button><button aria-pressed="false" data-v="결말 해석">결말</button></div></div>
-        <button class="primary" id="rvFind" style="background:var(--ink)">1. 자료 찾기 (약 1~2분)</button>
-        <div id="rvList" style="margin-top:12px"></div>
-        <button class="primary" id="rvMake" hidden>2. 고른 자료로 리뷰 쇼츠 만들기</button>
-        <div class="mini">공식 채널 예고편·티저는 홍보 목적이라 문제 될 가능성이 가장 낮지만 0은 아니에요. 리뷰는 해설 위주로, 예고편 화면은 40% 이하로 써요. 유튜브 영상을 가져오려면 설정의 '유튜브 로그인 정보'가 필요할 수 있어요.</div>
-        <div class="msg" id="rvMsg" role="status"></div>
-      </details>
-    </section>
+    <!-- 제작 보류 -->
+    <div id="holdWrap" hidden>
+      <div class="sec"><h3>⏸ 제작 보류</h3></div>
+      <section class="card" id="holds"></section>
+    </div>
 
     <!-- 대본 확인 -->
     <div id="draftWrap" hidden>
@@ -377,7 +374,7 @@ const ICON = {
 const VOICES = [
   ["여성 밝음","Zephyr","또렷하고 밝은"],["여성 활기","Laomedeia","신나고 경쾌한"],["여성 차분","Kore","단단하고 차분한"],["여성 따뜻","Sulafat","부드럽고 따뜻한"],
   ["여성 상큼","Leda","젊고 상큼한"],["남성 활기","Puck","힘차고 밝은"],["남성 신뢰","Charon","믿음직한 정보형"],["남성 친근","Achird","편안하고 친근한"]];
-let token = ""; let poll = null; let ships = []; let drafts = []; let samples = {}; let edit = null;
+let token = ""; let poll = null; let ships = []; let drafts = []; let holds = []; let samples = {}; let edit = null;
 const SET = "sff_settings";
 const IOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
 let prefs = {}; try { prefs = JSON.parse(localStorage.getItem(SET) || "{}"); } catch (e) {}
@@ -428,7 +425,7 @@ document.querySelectorAll(".seg").forEach(seg => seg.onclick = e => {
 });
 const pick = name => document.querySelector(`.seg[data-name="${name}"] [aria-pressed="true"]`).dataset.v;
 function savePrefs(){
-  prefs = { len:pick("len"), spd:pick("spd"), size:pick("size"), pos:pick("pos"), hook:pick("hook"), src:pick("src"), ltype:pick("ltype"), otype:pick("otype"), style:pick("style"), rights:pick("rights"), cat:pick("cat"), rvangle:pick("rvangle"), fact:$("factTg").getAttribute("aria-checked"), font:curFont(), audio:pick("audio"), fill:pick("fill"),
+  prefs = { len:pick("len"), spd:pick("spd"), size:pick("size"), pos:pick("pos"), hook:pick("hook"), src:pick("src"), ltype:pick("ltype"), otype:pick("otype"), style:pick("style"), rights:pick("rights"), cat:pick("cat"), fact:$("factTg").getAttribute("aria-checked"), font:curFont(), audio:pick("audio"), fill:pick("fill"),
             voice:curVoice(), review:$("reviewTg").getAttribute("aria-checked")==="true" };
   try { localStorage.setItem(SET, JSON.stringify(prefs)); } catch (e) {}
   updPrev(); updSrc();
@@ -466,7 +463,7 @@ $("reviewSw").onclick = () => { const t = $("reviewTg"); t.setAttribute("aria-ch
 // 저장된 설정 불러오기
 if (prefs.len) setSeg("len", prefs.len); if (prefs.spd) setSeg("spd", prefs.spd);
 if (prefs.size) setSeg("size", prefs.size); if (prefs.pos) setSeg("pos", prefs.pos);
-["hook","src","audio","fill","ltype","otype","style","rights","cat","rvangle"].forEach(k => { if (prefs[k]) setSeg(k, prefs[k]); });
+["hook","src","audio","fill","ltype","otype","style","rights","cat"].forEach(k => { if (prefs[k]) setSeg(k, prefs[k]); });
 $("reviewTg").setAttribute("aria-checked", prefs.review ? "true" : "false");
 if (prefs.fact) $("factTg").setAttribute("aria-checked", prefs.fact);
 $("factSw").onclick = () => { const t = $("factTg"); t.setAttribute("aria-checked", t.getAttribute("aria-checked") === "true" ? "false" : "true"); savePrefs(); };
@@ -667,13 +664,15 @@ let ideaWait = 0;
 function showIdeas(rel){
   if (!rel) return;
   const m = /<!--IDEAS:([A-Za-z0-9+/=]+)-->/.exec(rel.body || ""); if (!m) return;
-  let items = []; try { items = JSON.parse(b64d(m[1])); } catch (e) { return; }
+  let items = [], stat = ""; try { const d = JSON.parse(b64d(m[1])); items = Array.isArray(d) ? d : d.items; stat = d.status || ""; } catch (e) { return; }
   $("ideaBox").hidden = false;
   $("ideaBox").innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><b style="font-size:14px">${esc(rel.name.replace("[추천] ", ""))} 추천 주제</b><button class="x" id="ideaClose" style="border:0;background:none;color:var(--sub);cursor:pointer">닫기</button></div>`
+    + (stat ? `<div class="mini" style="margin:-4px 0 8px">📡 수집: ${esc(stat)}</div>` : "")
     + items.map((x, i) => `<div class="clip" style="flex-direction:column;align-items:stretch;cursor:default;margin-bottom:8px">
         <b style="white-space:normal;font-size:15px">${esc(x.topic)}</b>
         <small style="white-space:normal">${esc(x.why || "")}${x.src === "real" ? " · 📷 실제 자료 추천" : ""}</small>
         <small style="white-space:normal">🔥 ${esc(x.interest || "관심도 미확인")}</small>
+        ${x.news_total != null ? `<small style="white-space:normal">📰 네이버 뉴스 ${Number(x.news_total).toLocaleString()}건 (뉴스 양 · 검색 관심도와 다른 지표)</small>` : ""}
         ${(x.related || []).length ? `<small style="white-space:normal">🔍 ${x.related.map(esc).join(" · ")}</small>` : ""}
         ${(x.news || []).map(n => `<small style="white-space:normal">📰 <a href="${esc(n.url)}" target="_blank" rel="noopener" style="color:var(--blue)">${esc(n.title || n.url)}</a></small>`).join("")}
         <button class="pill" data-idea="${i}" style="margin-top:6px;align-self:flex-start">이 주제로 하기</button></div>`).join("");
@@ -689,51 +688,6 @@ function showIdeas(rel){
     ideaWait = 0; $("askIdeas").disabled = false; $("askIdeas").textContent = "💡 추천 주제 5개 받기"; toast("추천 주제가 도착했어요");
   }
 }
-
-// 🎬 리뷰 공장
-let rvItems = [], rvPicked = [];
-$("rvFind").onclick = async () => {
-  const t = $("rvTitle").value.trim();
-  if (!t) { $("rvMsg").textContent = "작품명을 써주세요."; return; }
-  $("rvFind").disabled = true; $("rvFind").textContent = "자료 찾는 중… (약 1~2분)";
-  try { await dispatch({ topic: t, mode: "find" }); rvWait = Date.now(); startPoll(); setTimeout(loadRuns, 4000); }
-  catch (e) { $("rvMsg").textContent = e.message; $("rvFind").disabled = false; $("rvFind").textContent = "1. 자료 찾기 (약 1~2분)"; }
-};
-let rvWait = 0;
-function showFind(rel){
-  if (!rel) return;
-  const m = /<!--FIND:([A-Za-z0-9+/=]+)-->/.exec(rel.body || ""); if (!m) return;
-  try { rvItems = JSON.parse(b64d(m[1])); } catch (e) { return; }
-  if (!$("rvTitle").value.trim()) $("rvTitle").value = rel.name.replace("[자료] ", "");
-  $("rvList").innerHTML = rvItems.length ? `<div class="mini" style="margin-bottom:6px">쓸 자료를 눌러 고르세요 (2~4개 추천)</div>` + rvItems.map((x, i) => {
-    const k = rvPicked.indexOf(i);
-    return `<div class="clip" role="button" tabindex="0" data-rv="${i}" aria-pressed="${k >= 0}" style="margin-bottom:6px">
-      <span class="ck">${k >= 0 ? k + 1 : ""}</span><div><b style="white-space:normal">${esc(x.title)}</b>
-      <small>${x.kind === "promo" ? "🎞 공식 홍보" : "🆓 CC"} · ${esc(x.channel)} · <a href="${esc(x.url)}" target="_blank" rel="noopener" style="color:var(--blue)">보기</a></small></div></div>`; }).join("")
-    : `<div class="mini">찾은 자료가 없어요. 작품명을 정확히 다시 써보세요.</div>`;
-  $("rvMake").hidden = !rvItems.length;
-  if (rvWait && new Date(rel.created_at).getTime() > rvWait - 60000) {
-    rvWait = 0; $("rvFind").disabled = false; $("rvFind").textContent = "1. 자료 찾기 (약 1~2분)"; $("rvBox").open = true; toast("리뷰 자료가 도착했어요");
-  }
-}
-$("rvList").addEventListener("click", e => {
-  if (e.target.closest("a")) return;
-  const c = e.target.closest("[data-rv]"); if (!c) return;
-  const i = +c.dataset.rv, k = rvPicked.indexOf(i);
-  if (k >= 0) rvPicked.splice(k, 1); else rvPicked.push(i);
-  showFind(lastFind);
-});
-let lastFind = null;
-$("rvMake").onclick = async () => {
-  if (!rvPicked.length) { $("rvMsg").textContent = "자료를 1개 이상 골라주세요."; return; }
-  const media = rvPicked.map(i => `${rvItems[i].kind}::${rvItems[i].url}`).join("|");
-  $("rvMake").disabled = true;
-  try {
-    await dispatch({ topic: `${$("rvTitle").value.trim()} ${pick("rvangle")}`, mode: "review", media, _look: { audio: "ai_only", fill: "own", rights: "promo" } });
-    $("rvMsg").textContent = "주문 완료! 10~15분 뒤 완성된 영상에 도착해요."; rvPicked = []; setTimeout(loadRuns, 4000); startPoll();
-  } catch (e) { $("rvMsg").textContent = e.message; }
-  $("rvMake").disabled = false;
-};
 
 function setFont(k){ document.querySelectorAll("#fonts .fnt").forEach(b => b.setAttribute("aria-pressed", b.dataset.font === k ? "true" : "false")); }
 setFont(prefs.font || "");
@@ -826,7 +780,18 @@ async function loadShips(){
     renderVoices();
     let hiddenDrafts = []; try { hiddenDrafts = JSON.parse(localStorage.getItem("sff_hidden") || "[]"); } catch (e) {}
     showIdeas(all.find(r => r.tag_name.startsWith("ideas-")));
-    lastFind = all.find(r => r.tag_name.startsWith("find-")); showFind(lastFind);
+
+    holds = all.filter(r => r.tag_name.startsWith("hold-")).slice(0, 5).map(r => ({ id:r.id, tag:r.tag_name, topic:r.name.replace("[보류] ", ""), body:r.body || "", date:r.created_at }));
+    $("holdWrap").hidden = !holds.length;
+    $("holds").innerHTML = holds.map((h, i) => `<div ${i ? 'style="margin-top:14px;padding-top:14px;border-top:1px solid var(--line)"' : ""}>
+      <b style="font-size:15px">${esc(h.topic)}</b> <small class="mini">${ago(h.date)}</small>
+      <div class="hint">${esc((/⏸ 제작 보류: (.*)/.exec(h.body) || [])[1] || "자료 부족")}</div>
+      <details><summary>검색 기록·자료 상태 보기</summary><pre>${esc(h.body)}</pre></details>
+      <div class="btns" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">
+        <button class="pill" data-hart="${i}">📎 자료 붙여서 다시</button>
+        <button class="pill light" data-hwide="${i}">주제 넓혀서 다시</button>
+        <button class="pill light" data-hcre="${i}">🎭 창작으로 만들기</button>
+        <button class="pill light" data-hdel="${i}">삭제</button></div></div>`).join("");
     drafts = all.filter(r => r.tag_name.startsWith("draft-") && !hiddenDrafts.includes(r.tag_name))
       .map(r => ({ id:r.id, tag:r.tag_name, title:r.name.replace("[대본] ", ""), date:r.created_at, script:hidden(r.body) }));
     $("draftWrap").hidden = !drafts.length;
@@ -835,10 +800,13 @@ async function loadShips(){
       <div class="btns"><button class="pill light" data-hide="${i}">버리기</button><button class="pill" data-open="${i}">확인·수정</button></div></div>`).join("");
     const rels = all.filter(r => r.tag_name.startsWith("short-")).slice(0, 12);
     ships = rels.map(r => { const b = (r.body || "").replace(/\r/g, "").replace(/<!--SCRIPT:[^>]*-->/, "");
-      const fr = b.indexOf("🔎") >= 0 ? b.slice(b.indexOf("🔎")).trim() : "";
+      const ai = b.indexOf("🖼");
+      const fr = b.indexOf("🔎") >= 0 ? b.slice(b.indexOf("🔎"), ai > 0 ? ai : undefined).trim() : "";
+      const av = ai >= 0 ? b.slice(ai).trim() : "";
+      const rv = (/⏸ 검수 대기: (.*)/.exec(b) || [])[1] || "";
       const pol = ((b.split("\n").find(l => l.startsWith("✅")) || "").split("/")[0] || "").replace(/✅|정책 검사:/g, "").trim();
       const om = /🎨 독창성 점수: (\d+)점/.exec(b);
-      return { title: part(b,"📌") || r.name, desc: part(b,"📝"), pin: part(b,"💬"), pol, warn: part(b,"⚠️"), asset:(r.assets||[])[0], date:r.created_at, script:hidden(r.body), orig: om ? +om[1] : null, id:r.id, tag:r.tag_name, fr }; });
+      return { title: (part(b,"📌") || r.name).replace(/^\[검수 대기\] /, ""), desc: part(b,"📝"), pin: part(b,"💬"), pol, warn: part(b,"⚠️"), asset:(r.assets||[])[0], date:r.created_at, script:hidden(r.body), orig: om ? +om[1] : null, id:r.id, tag:r.tag_name, fr, av, rv }; });
     if (!ships.length) { $("ships").innerHTML = `<section class="card"><div class="empty">완성된 영상이 여기에 쌓여요.</div></section>`; return; }
     $("ships").innerHTML = ships.map((s, i) => `
       <section class="card vid">
@@ -846,7 +814,7 @@ async function loadShips(){
           <div class="thumb">▶</div>
           <div style="min-width:0">
             <h4>${esc(s.title)}</h4>
-            <div class="meta">${ago(s.date)} <span class="badge ${s.pol === "통과" ? "ok" : "warn"}">정책 ${esc(s.pol || "-")}</span>${s.orig !== null ? ` <span class="badge ${s.orig >= 60 ? "ok" : "warn"}">독창성 ${s.orig}점</span>` : ""}</div>
+            <div class="meta">${ago(s.date)} ${s.rv ? `<span class="badge warn">⏸ 검수 대기</span>` : `<span class="badge ok">✓ 업로드 준비</span>`} <span class="badge ${s.pol === "통과" ? "ok" : "warn"}">정책 ${esc(s.pol || "-")}</span>${s.orig !== null ? ` <span class="badge ${s.orig >= 60 ? "ok" : "warn"}">독창성 ${s.orig}점</span>` : ""}</div>
           </div>
         </div>
         <div class="acts">
@@ -858,7 +826,9 @@ async function loadShips(){
           <button class="act" data-e="${i}" ${s.script ? "" : "disabled style=\"opacity:.4\""}>${ICON.edit}수정</button>
         </div>
         ${s.warn ? `<details><summary>⚠️ 고칠 점 보기</summary><pre>${esc(s.warn)}</pre></details>` : ""}
+        ${s.rv ? `<div class="hint">⏸ 검수 대기 이유: ${esc(s.rv)} · 확인 후 직접 판단해서 올려주세요</div>` : ""}
         ${s.fr ? `<details><summary>🔎 사실 검증·출처 보기</summary><pre>${esc(s.fr)}</pre></details>` : ""}
+        ${s.av ? `<details><summary>🖼 시각 자료·이용 조건 보기</summary><pre>${esc(s.av)}</pre></details>` : ""}
         <button class="x" data-rm="${i}" style="border:0;background:none;color:var(--sub);font-size:12px;cursor:pointer;align-self:flex-end">🗑 이 영상 삭제</button>
         ${IOS && s.asset ? `<a class="mini" style="display:block;text-align:right;color:var(--sub)" href="${esc(s.asset.browser_download_url)}" target="_blank" rel="noopener">파일로 받기</a>` : ""}
       </section>`).join("");
@@ -933,6 +903,19 @@ $("eGo").onclick = async () => {
   } catch (err) { toast(err.message); }
   $("eGo").disabled = false;
 };
+
+$("holds").addEventListener("click", async e => {
+  const b = e.target.closest("button"); if (!b) return;
+  const k = [...b.attributes].find(a => a.name.startsWith("data-h")); if (!k) return;
+  const h = holds[+k.value];
+  if (k.name === "data-hart") { $("topic").value = h.topic; $("artBox").open = true; $("artUrl").focus(); window.scrollTo({ top: 0, behavior: "smooth" }); toast("믿을 만한 자료 링크나 글을 붙여넣고 만들기를 눌러주세요"); }
+  if (k.name === "data-hwide") { $("topic").value = h.topic; $("topic").focus(); window.scrollTo({ top: 0, behavior: "smooth" }); toast("주제를 조금 더 일반적으로 고쳐서 만들어보세요"); }
+  if (k.name === "data-hcre") {
+    if (!confirm("실제 사실이 아닌 '상상·창작' 콘텐츠로 만들까요? 영상에 창작임이 표시돼요.")) return;
+    try { await dispatch({ topic: h.topic, mode: "full", _look: { creative: "1", fact: "1" } }); toast("창작 콘텐츠로 주문했어요"); setTimeout(loadRuns, 4000); startPoll(); } catch (er) { toast(er.message); }
+  }
+  if (k.name === "data-hdel") { if (!confirm("이 보류 기록을 지울까요?")) return; try { await removeRelease(h.id, h.tag); loadShips(); } catch (er) { toast(er.message); } }
+});
 
 function startPoll(){ if (!poll) poll = setInterval(loadRuns, 15000); }
 function stopPoll(reload){ if (poll) { clearInterval(poll); poll = null; if (reload) loadShips(); } }
