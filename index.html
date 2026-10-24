@@ -167,9 +167,10 @@ pre{white-space:pre-wrap;word-break:break-all;font-family:inherit;font-size:13px
 <div class="wrap">
   <header class="top">
     <div class="brand"><div class="logo">▶</div><div><b>숏폼 공장</b><span>1분 몸상식</span></div></div>
+    <div style="display:flex;gap:8px"><button class="icon-btn" id="reloadAll" aria-label="전체 새로고침" title="전체 새로고침">↻</button>
     <button class="icon-btn" id="gear" aria-label="설정" hidden>
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-    </button>
+    </button></div>
   </header>
 
   <!-- 처음 설정 -->
@@ -192,8 +193,21 @@ pre{white-space:pre-wrap;word-break:break-all;font-family:inherit;font-size:13px
       <p class="desc">주제만 적으면 대본·목소리·편집까지 자동으로 만들어요.</p>
       <textarea id="topic" rows="3" placeholder="예) 자기 전 스마트폰 30분이 몸에 주는 변화"></textarea>
       <div class="ideas" id="ideas"></div>
-      <button class="idea" id="askIdeas" style="margin-top:8px;color:var(--accent);border-color:var(--accent)">💡 키워드로 추천 주제 10개 받기</button>
+      <div class="opt" style="margin-top:14px"><label style="font-size:13px;font-weight:700;color:var(--sub);display:block;margin-bottom:8px">분야</label>
+        <div class="seg" data-name="cat" style="flex-wrap:wrap"><button aria-pressed="true" data-v="live">실시간</button><button aria-pressed="false" data-v="policy">정책·법</button><button aria-pressed="false" data-v="fact">연구</button><button aria-pressed="false" data-v="drama">드라마</button><button aria-pressed="false" data-v="life">생활</button></div>
+        <div class="mini" id="catNote"></div></div>
+      <button class="idea" id="askIdeas" style="margin-top:10px;color:var(--accent);border-color:var(--accent)">💡 추천 주제 5개 받기</button>
+      <div class="mini">주제 칸에 키워드를 쓰면 그 키워드로, 비워두면 오늘의 인기 주제로 추천해요.</div>
       <div id="ideaBox" hidden style="margin-top:10px;padding:12px;border-radius:14px;background:var(--soft)"></div>
+      <div class="switch" id="factSw" style="margin-top:14px">
+        <div><b>자료 조사 + 사실 검증</b><span>검색으로 실제 자료를 모으고, 근거가 확인된 사실만 써요. 핵심 사실이 확인 안 되면 영상을 만들지 않아요</span></div>
+        <button class="tg" id="factTg" role="switch" aria-checked="true" aria-label="자료 조사 + 사실 검증"></button>
+      </div>
+      <details id="artBox" style="margin-top:12px"><summary style="font-size:14px;font-weight:700;color:var(--ink);cursor:pointer">📎 참고 글로 만들기 (블로그·기사 링크 또는 글 붙여넣기)</summary>
+        <input class="cin" id="artUrl" placeholder="https://블로그·기사 링크">
+        <textarea class="cin" id="artText" rows="4" placeholder="또는 글 내용을 그대로 붙여넣기" style="margin-top:8px;resize:vertical"></textarea>
+        <div class="mini">첨부한 글에 있는 사실만 써서, 문장은 새로 써요. 출처는 설명란에 들어가요.</div>
+      </details>
       <div class="opt" style="margin-top:18px"><label style="font-size:13px;font-weight:700;color:var(--sub);display:block;margin-bottom:8px">화면에 쓸 영상</label>
         <div class="seg" data-name="src"><button aria-pressed="true" data-v="stock">무료 영상</button><button aria-pressed="false" data-v="real">실제 자료</button><button aria-pressed="false" data-v="own">내 영상</button><button aria-pressed="false" data-v="long">링크</button></div>
         <div class="mini" id="realNote" hidden>실화·사건·우주·연구 주제에 좋아요. 위키미디어 커먼즈·NASA의 <b>자유 이용 실제 사진·기록 영상</b>을 찾아 쓰고, 출처는 설명란에 자동으로 적어요.</div></div>
@@ -267,6 +281,20 @@ pre{white-space:pre-wrap;word-break:break-all;font-family:inherit;font-size:13px
       </div>
       <button class="primary" id="make">만들기</button>
       <div class="msg" id="makeMsg" role="status"></div>
+    </section>
+
+    <!-- 리뷰 공장 -->
+    <section class="card">
+      <details id="rvBox"><summary style="list-style:none;cursor:pointer"><h2 style="display:inline">🎬 리뷰 공장</h2> <span class="mini">드라마·영화 리뷰 (공식 예고편·CC 자료만)</span></summary>
+        <input class="cin" id="rvTitle" placeholder="작품명 예) 100일의 거짓말" style="margin-top:12px">
+        <div class="opt" style="margin-top:12px"><label>리뷰 관점</label>
+          <div class="seg" data-name="rvangle" style="flex-wrap:wrap"><button aria-pressed="true" data-v="실화 비교">실화</button><button aria-pressed="false" data-v="숨은 디테일">디테일</button><button aria-pressed="false" data-v="인물 분석">인물</button><button aria-pressed="false" data-v="결말 해석">결말</button></div></div>
+        <button class="primary" id="rvFind" style="background:var(--ink)">1. 자료 찾기 (약 1~2분)</button>
+        <div id="rvList" style="margin-top:12px"></div>
+        <button class="primary" id="rvMake" hidden>2. 고른 자료로 리뷰 쇼츠 만들기</button>
+        <div class="mini">공식 채널 예고편·티저는 홍보 목적이라 문제 될 가능성이 가장 낮지만 0은 아니에요. 리뷰는 해설 위주로, 예고편 화면은 40% 이하로 써요. 유튜브 영상을 가져오려면 설정의 '유튜브 로그인 정보'가 필요할 수 있어요.</div>
+        <div class="msg" id="rvMsg" role="status"></div>
+      </details>
     </section>
 
     <!-- 대본 확인 -->
@@ -382,7 +410,7 @@ document.querySelectorAll(".seg").forEach(seg => seg.onclick = e => {
 });
 const pick = name => document.querySelector(`.seg[data-name="${name}"] [aria-pressed="true"]`).dataset.v;
 function savePrefs(){
-  prefs = { len:pick("len"), spd:pick("spd"), size:pick("size"), pos:pick("pos"), hook:pick("hook"), src:pick("src"), ltype:pick("ltype"), otype:pick("otype"), style:pick("style"), rights:pick("rights"), audio:pick("audio"), fill:pick("fill"),
+  prefs = { len:pick("len"), spd:pick("spd"), size:pick("size"), pos:pick("pos"), hook:pick("hook"), src:pick("src"), ltype:pick("ltype"), otype:pick("otype"), style:pick("style"), rights:pick("rights"), cat:pick("cat"), rvangle:pick("rvangle"), fact:$("factTg").getAttribute("aria-checked"), audio:pick("audio"), fill:pick("fill"),
             voice:curVoice(), review:$("reviewTg").getAttribute("aria-checked")==="true" };
   try { localStorage.setItem(SET, JSON.stringify(prefs)); } catch (e) {}
   updPrev(); updSrc();
@@ -420,13 +448,21 @@ $("reviewSw").onclick = () => { const t = $("reviewTg"); t.setAttribute("aria-ch
 // 저장된 설정 불러오기
 if (prefs.len) setSeg("len", prefs.len); if (prefs.spd) setSeg("spd", prefs.spd);
 if (prefs.size) setSeg("size", prefs.size); if (prefs.pos) setSeg("pos", prefs.pos);
-["hook","src","audio","fill","ltype","otype","style","rights"].forEach(k => { if (prefs[k]) setSeg(k, prefs[k]); });
+["hook","src","audio","fill","ltype","otype","style","rights","cat","rvangle"].forEach(k => { if (prefs[k]) setSeg(k, prefs[k]); });
 $("reviewTg").setAttribute("aria-checked", prefs.review ? "true" : "false");
+if (prefs.fact) $("factTg").setAttribute("aria-checked", prefs.fact);
+$("factSw").onclick = () => { const t = $("factTg"); t.setAttribute("aria-checked", t.getAttribute("aria-checked") === "true" ? "false" : "true"); savePrefs(); };
+const CATNOTE = { live:"한국 사이트(언론사·포털·공식 기관)만 확인해요", policy:"정책브리핑·고용노동부·국가법령정보센터·정부24 등 공식 자료를 우선해요. 시행 중/시행 예정/검토 중을 구분해요",
+  fact:"국내외 자료를 모두 찾고, 확인된 사실만 써요", drama:"공식 방송사 소개·회차 정보·기사 위주로, 한국 사이트만 확인해요", life:"국내외 자료에서 확인된 사실만 써요" };
+function catNote(){ $("catNote").textContent = CATNOTE[pick("cat")] || ""; }
+document.querySelector('.seg[data-name="cat"]').addEventListener("click", () => setTimeout(catNote)); catNote();
+$("reloadAll").onclick = () => { location.href = location.pathname + "?v=" + Date.now(); };
 renderVoices(); updPrev();
 
 function look(extra){
   const o = { sub_size:pick("size"), sub_pos:pick("pos"), hook_size:pick("hook"), audio:pick("audio"), fill:pick("fill"),
-              style:pick("style"), rights:pick("rights"), src: pick("src") === "real" ? "real" : "", ...(extra||{}) };
+              style:pick("style"), rights:pick("rights"), src: pick("src") === "real" ? "real" : "",
+              cat:pick("cat"), fact: $("factTg").getAttribute("aria-checked") === "true" ? "1" : "", ...(extra||{}) };
   return Object.entries(o).map(([k, v]) => `${k}=${v}`).join(";");
 }
 let clips = null; let picked = [];
@@ -605,10 +641,9 @@ $("ownCredit").addEventListener("change", ccHint);
 // 💡 추천 주제
 $("askIdeas").onclick = async () => {
   const kw = $("topic").value.trim();
-  if (!kw) { msg("makeMsg","주제 칸에 키워드를 먼저 써주세요. 예) 외계인, 다이어트, 수면","err"); $("topic").focus(); return; }
-  $("askIdeas").disabled = true; $("askIdeas").textContent = "💡 추천 주제 뽑는 중… (약 1분)";
+  $("askIdeas").disabled = true; $("askIdeas").textContent = kw ? "💡 추천 주제 뽑는 중… (약 1분)" : "💡 오늘의 인기 주제 찾는 중… (약 1분)";
   try { await dispatch({ topic: kw, mode: "ideas" }); ideaWait = Date.now(); startPoll(); setTimeout(loadRuns, 4000); }
-  catch (e) { msg("makeMsg", e.message, "err"); $("askIdeas").disabled = false; $("askIdeas").textContent = "💡 추천 주제 10개 받기"; }
+  catch (e) { msg("makeMsg", e.message, "err"); $("askIdeas").disabled = false; $("askIdeas").textContent = "💡 추천 주제 5개 받기"; }
 };
 let ideaWait = 0;
 function showIdeas(rel){
@@ -617,18 +652,70 @@ function showIdeas(rel){
   let items = []; try { items = JSON.parse(b64d(m[1])); } catch (e) { return; }
   $("ideaBox").hidden = false;
   $("ideaBox").innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><b style="font-size:14px">${esc(rel.name.replace("[추천] ", ""))} 추천 주제</b><button class="x" id="ideaClose" style="border:0;background:none;color:var(--sub);cursor:pointer">닫기</button></div>`
-    + items.map((x, i) => `<button class="clip" data-idea="${i}" style="width:100%;text-align:left;margin-bottom:6px"><div><b style="white-space:normal">${esc(x.topic)}</b><small>${esc(x.why || "")}${x.src === "real" ? " · 📷 실제 자료 추천" : ""}</small></div></button>`).join("");
+    + items.map((x, i) => `<div class="clip" style="flex-direction:column;align-items:stretch;cursor:default;margin-bottom:8px">
+        <b style="white-space:normal;font-size:15px">${esc(x.topic)}</b>
+        <small style="white-space:normal">${esc(x.why || "")}${x.src === "real" ? " · 📷 실제 자료 추천" : ""}</small>
+        <small style="white-space:normal">🔥 ${esc(x.interest || "관심도 미확인")}</small>
+        ${(x.related || []).length ? `<small style="white-space:normal">🔍 ${x.related.map(esc).join(" · ")}</small>` : ""}
+        ${(x.news || []).map(n => `<small style="white-space:normal">📰 <a href="${esc(n.url)}" target="_blank" rel="noopener" style="color:var(--blue)">${esc(n.title || n.url)}</a></small>`).join("")}
+        <button class="pill" data-idea="${i}" style="margin-top:6px;align-self:flex-start">이 주제로 하기</button></div>`).join("");
   $("ideaBox").onclick = e => {
     if (e.target.id === "ideaClose") { $("ideaBox").hidden = true; return; }
     const b = e.target.closest("[data-idea]"); if (!b) return;
     const x = items[+b.dataset.idea]; $("topic").value = x.topic;
+    if (x.cat && ["live","policy","fact","drama","life"].includes(x.cat)) { setSeg("cat", x.cat); catNote(); }
     if (x.src === "real") setSeg("src", "real"); else if (pick("src") === "real") setSeg("src", "stock");
     savePrefs(); $("topic").scrollIntoView({ behavior:"smooth", block:"center" }); toast("주제를 넣었어요");
   };
   if (ideaWait && new Date(rel.created_at).getTime() > ideaWait - 60000) {
-    ideaWait = 0; $("askIdeas").disabled = false; $("askIdeas").textContent = "💡 추천 주제 10개 받기"; toast("추천 주제가 도착했어요");
+    ideaWait = 0; $("askIdeas").disabled = false; $("askIdeas").textContent = "💡 추천 주제 5개 받기"; toast("추천 주제가 도착했어요");
   }
 }
+
+// 🎬 리뷰 공장
+let rvItems = [], rvPicked = [];
+$("rvFind").onclick = async () => {
+  const t = $("rvTitle").value.trim();
+  if (!t) { $("rvMsg").textContent = "작품명을 써주세요."; return; }
+  $("rvFind").disabled = true; $("rvFind").textContent = "자료 찾는 중… (약 1~2분)";
+  try { await dispatch({ topic: t, mode: "find" }); rvWait = Date.now(); startPoll(); setTimeout(loadRuns, 4000); }
+  catch (e) { $("rvMsg").textContent = e.message; $("rvFind").disabled = false; $("rvFind").textContent = "1. 자료 찾기 (약 1~2분)"; }
+};
+let rvWait = 0;
+function showFind(rel){
+  if (!rel) return;
+  const m = /<!--FIND:([A-Za-z0-9+/=]+)-->/.exec(rel.body || ""); if (!m) return;
+  try { rvItems = JSON.parse(b64d(m[1])); } catch (e) { return; }
+  if (!$("rvTitle").value.trim()) $("rvTitle").value = rel.name.replace("[자료] ", "");
+  $("rvList").innerHTML = rvItems.length ? `<div class="mini" style="margin-bottom:6px">쓸 자료를 눌러 고르세요 (2~4개 추천)</div>` + rvItems.map((x, i) => {
+    const k = rvPicked.indexOf(i);
+    return `<div class="clip" role="button" tabindex="0" data-rv="${i}" aria-pressed="${k >= 0}" style="margin-bottom:6px">
+      <span class="ck">${k >= 0 ? k + 1 : ""}</span><div><b style="white-space:normal">${esc(x.title)}</b>
+      <small>${x.kind === "promo" ? "🎞 공식 홍보" : "🆓 CC"} · ${esc(x.channel)} · <a href="${esc(x.url)}" target="_blank" rel="noopener" style="color:var(--blue)">보기</a></small></div></div>`; }).join("")
+    : `<div class="mini">찾은 자료가 없어요. 작품명을 정확히 다시 써보세요.</div>`;
+  $("rvMake").hidden = !rvItems.length;
+  if (rvWait && new Date(rel.created_at).getTime() > rvWait - 60000) {
+    rvWait = 0; $("rvFind").disabled = false; $("rvFind").textContent = "1. 자료 찾기 (약 1~2분)"; $("rvBox").open = true; toast("리뷰 자료가 도착했어요");
+  }
+}
+$("rvList").addEventListener("click", e => {
+  if (e.target.closest("a")) return;
+  const c = e.target.closest("[data-rv]"); if (!c) return;
+  const i = +c.dataset.rv, k = rvPicked.indexOf(i);
+  if (k >= 0) rvPicked.splice(k, 1); else rvPicked.push(i);
+  showFind(lastFind);
+});
+let lastFind = null;
+$("rvMake").onclick = async () => {
+  if (!rvPicked.length) { $("rvMsg").textContent = "자료를 1개 이상 골라주세요."; return; }
+  const media = rvPicked.map(i => `${rvItems[i].kind}::${rvItems[i].url}`).join("|");
+  $("rvMake").disabled = true;
+  try {
+    await dispatch({ topic: `${$("rvTitle").value.trim()} ${pick("rvangle")}`, mode: "review", media, _look: { audio: "ai_only", fill: "own", rights: "promo" } });
+    $("rvMsg").textContent = "주문 완료! 10~15분 뒤 완성된 영상에 도착해요."; rvPicked = []; setTimeout(loadRuns, 4000); startPoll();
+  } catch (e) { $("rvMsg").textContent = e.message; }
+  $("rvMake").disabled = false;
+};
 
 function opts(extra){ return { length:pick("len"), voice:curVoice(), speed:pick("spd"), look:look(extra) }; }
 async function dispatch(inputs){
@@ -647,13 +734,16 @@ $("make").onclick = async () => {
   if (own && pick("otype") === "hl" && picked.length !== 1) { msg("makeMsg","하이라이트는 긴 영상 1개만 골라주세요.","err"); return; }
   if (lng && !/^https?:\/\/\S+/.test(url)) { msg("makeMsg","영상 링크를 붙여넣어 주세요.","err"); $("longUrl").focus(); return; }
   if (lng && /instagram\.com/.test(url) && pick("rights") === "cc") { msg("makeMsg","인스타그램 영상은 '내 영상' 또는 '허락받음'일 때만 쓸 수 있어요.","err"); return; }
-  if ((src === "stock" || src === "real") && !topic) { msg("makeMsg","주제를 입력해주세요.","err"); $("topic").focus(); return; }
+  if ((src === "stock" || src === "real") && !topic && !$("artUrl").value.trim() && !$("artText").value.trim()) { msg("makeMsg","주제를 입력하거나 참고 글을 첨부해주세요.","err"); $("topic").focus(); return; }
   $("make").disabled = true; $("make").textContent = "주문 넣는 중…"; msg("makeMsg","");
   try {
     const review = (src === "stock" || src === "real") && $("reviewTg").getAttribute("aria-checked") === "true";
-    await dispatch(own ? { topic, mode: pick("otype") === "hl" ? "long" : "own", media: picked.join("|"), credit: $("ownCredit").value.trim() }
+    const au = $("artUrl").value.trim(), at = $("artText").value.trim();
+    const article = (src === "stock" || src === "real") && (au || at);
+    await dispatch(article ? { topic, mode: "article", media: au ? "url::" + au : "text::" + b64e(at.slice(0, 30000)) } : own ? { topic, mode: pick("otype") === "hl" ? "long" : "own", media: picked.join("|"), credit: $("ownCredit").value.trim() }
       : lng ? { topic, mode: pick("ltype") === "hl" ? "long" : "own", media: url, credit: $("longCredit").value.trim() }
       : { topic, mode: review ? "script" : "full" });
+    if (article) { $("artUrl").value = ""; $("artText").value = ""; }
     if (lng) { $("longUrl").value = ""; $("longCredit").value = ""; longHint.done = false; longHint(); }
     msg("makeMsg", review ? "대본 쓰는 중! 1~2분 뒤 '대본 확인 대기'에 나타나요."
       : (lng || (own && pick("otype") === "hl")) ? "주문 완료! 긴 영상은 길이에 따라 15~40분 걸려요. 완성되면 아래에 도착해요."
@@ -713,17 +803,19 @@ async function loadShips(){
     renderVoices();
     let hiddenDrafts = []; try { hiddenDrafts = JSON.parse(localStorage.getItem("sff_hidden") || "[]"); } catch (e) {}
     showIdeas(all.find(r => r.tag_name.startsWith("ideas-")));
+    lastFind = all.find(r => r.tag_name.startsWith("find-")); showFind(lastFind);
     drafts = all.filter(r => r.tag_name.startsWith("draft-") && !hiddenDrafts.includes(r.tag_name))
-      .map(r => ({ tag:r.tag_name, title:r.name.replace("[대본] ", ""), date:r.created_at, script:hidden(r.body) }));
+      .map(r => ({ id:r.id, tag:r.tag_name, title:r.name.replace("[대본] ", ""), date:r.created_at, script:hidden(r.body) }));
     $("draftWrap").hidden = !drafts.length;
     $("drafts").innerHTML = drafts.map((d, i) => `<div class="draft" ${i ? 'style="margin-top:14px;padding-top:14px;border-top:1px solid var(--line)"' : ""}>
       <div style="min-width:0"><b>${esc(d.title)}</b><small>${ago(d.date)} · 대본 완성</small></div>
       <div class="btns"><button class="pill light" data-hide="${i}">버리기</button><button class="pill" data-open="${i}">확인·수정</button></div></div>`).join("");
     const rels = all.filter(r => r.tag_name.startsWith("short-")).slice(0, 12);
     ships = rels.map(r => { const b = (r.body || "").replace(/\r/g, "").replace(/<!--SCRIPT:[^>]*-->/, "");
+      const fr = b.indexOf("🔎") >= 0 ? b.slice(b.indexOf("🔎")).trim() : "";
       const pol = ((b.split("\n").find(l => l.startsWith("✅")) || "").split("/")[0] || "").replace(/✅|정책 검사:/g, "").trim();
       const om = /🎨 독창성 점수: (\d+)점/.exec(b);
-      return { title: part(b,"📌") || r.name, desc: part(b,"📝"), pin: part(b,"💬"), pol, warn: part(b,"⚠️"), asset:(r.assets||[])[0], date:r.created_at, script:hidden(r.body), orig: om ? +om[1] : null }; });
+      return { title: part(b,"📌") || r.name, desc: part(b,"📝"), pin: part(b,"💬"), pol, warn: part(b,"⚠️"), asset:(r.assets||[])[0], date:r.created_at, script:hidden(r.body), orig: om ? +om[1] : null, id:r.id, tag:r.tag_name, fr }; });
     if (!ships.length) { $("ships").innerHTML = `<section class="card"><div class="empty">완성된 영상이 여기에 쌓여요.</div></section>`; return; }
     $("ships").innerHTML = ships.map((s, i) => `
       <section class="card vid">
@@ -743,11 +835,21 @@ async function loadShips(){
           <button class="act" data-e="${i}" ${s.script ? "" : "disabled style=\"opacity:.4\""}>${ICON.edit}수정</button>
         </div>
         ${s.warn ? `<details><summary>⚠️ 고칠 점 보기</summary><pre>${esc(s.warn)}</pre></details>` : ""}
+        ${s.fr ? `<details><summary>🔎 사실 검증·출처 보기</summary><pre>${esc(s.fr)}</pre></details>` : ""}
+        <button class="x" data-rm="${i}" style="border:0;background:none;color:var(--sub);font-size:12px;cursor:pointer;align-self:flex-end">🗑 이 영상 삭제</button>
         ${IOS && s.asset ? `<a class="mini" style="display:block;text-align:right;color:var(--sub)" href="${esc(s.asset.browser_download_url)}" target="_blank" rel="noopener">파일로 받기</a>` : ""}
       </section>`).join("");
   } catch (e) { $("ships").innerHTML = `<section class="card"><div class="empty">${esc(e.message)}</div></section>`; }
 }
+async function removeRelease(id, tag){
+  await gh(`/releases/${id}`, { method:"DELETE" });
+  try { await gh(`/git/refs/tags/${encodeURIComponent(tag)}`, { method:"DELETE" }); } catch (e) {}
+}
 $("ships").addEventListener("click", async e => {
+  const rm = e.target.closest("[data-rm]");
+  if (rm) { const s = ships[+rm.dataset.rm];
+    if (!confirm(`'${s.title}' 영상을 삭제할까요? 되돌릴 수 없어요.`)) return;
+    try { await removeRelease(s.id, s.tag); toast("삭제했어요"); loadShips(); } catch (err) { toast(err.message); } return; }
   const ed = e.target.closest("[data-e]");
   if (ed && !ed.disabled) { const s = ships[+ed.dataset.e]; openEditor(s.script, null, "수정해서 다시 만들기"); return; }
   const b = e.target.closest("[data-c]"); if (!b) return;
@@ -760,8 +862,8 @@ $("ships").addEventListener("click", async e => {
 $("drafts").addEventListener("click", e => {
   const o = e.target.closest("[data-open]"), h = e.target.closest("[data-hide]");
   if (o) { const d = drafts[+o.dataset.open]; if (d.script) openEditor(d.script, d.tag, "대본 확인"); else toast("대본을 읽지 못했어요"); }
-  if (h) { if (!confirm("이 대본을 버릴까요?")) return; let l = []; try { l = JSON.parse(localStorage.getItem("sff_hidden") || "[]"); } catch (er) {}
-    l.push(drafts[+h.dataset.hide].tag); try { localStorage.setItem("sff_hidden", JSON.stringify(l)); } catch (er) {} loadShips(); }
+  if (h) { if (!confirm("이 대본을 버릴까요?")) return; const d = drafts[+h.dataset.hide];
+    removeRelease(d.id, d.tag).then(() => { toast("버렸어요"); loadShips(); }).catch(er => toast(er.message)); }
 });
 function sceneHTML(sc, i){
   return `<div class="scene" data-i="${i}"><div class="scene-h"><span>장면 ${i + 1}</span><button data-del="${i}">삭제</button></div>
