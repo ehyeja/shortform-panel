@@ -256,7 +256,15 @@ pre{white-space:pre-wrap;word-break:break-all;font-family:inherit;font-size:13px
         <div class="mini">첨부한 글에 있는 사실만 써서, 문장은 새로 써요. 출처는 설명란에 들어가요.</div>
       </details>
       <div class="opt" style="margin-top:18px"><label style="font-size:13px;font-weight:700;color:var(--sub);display:block;margin-bottom:8px">화면에 쓸 영상</label>
-        <div class="seg" data-name="src"><button aria-pressed="true" data-v="stock">무료 영상</button><button aria-pressed="false" data-v="real">실제 자료</button><button aria-pressed="false" data-v="own">내 영상</button><button aria-pressed="false" data-v="long">링크</button></div>
+        <div class="seg" data-name="src"><button aria-pressed="true" data-v="stock">무료 영상</button><button aria-pressed="false" data-v="real">실제 자료</button><button aria-pressed="false" data-v="myimg">내 이미지</button><button aria-pressed="false" data-v="own">내 영상</button><button aria-pressed="false" data-v="long">링크</button></div>
+        <div class="src-box" id="myImgBox" hidden>
+          <b style="font-size:15px">🎨 내 이미지로 만들기 (구독 중인 앱 활용, 추가 비용 0원)</b>
+          <div class="mini" style="margin-top:6px;line-height:1.7">
+            ① <b>만들기</b>를 누르면 대본과 <b>장면별 이미지 문구</b>가 '대본 확인 대기'에 와요<br>
+            ② <b>확인·수정</b>을 열고 장면마다 <b>문구 복사</b> → 제미나이·ChatGPT 앱에 붙여넣어 이미지 만들기 → 사진첩에 저장<br>
+            ③ 같은 화면에서 <b>＋ 이미지 올리기</b>로 올리고, 장면마다 쓸 이미지 고르기<br>
+            ④ <b>이 대본으로 영상 만들기</b> → 이미지 + 목소리 + 자막으로 완성 (이미지 없는 장면은 무료 영상으로 채워요)</div>
+        </div>
         <div class="mini" id="realNote" hidden>실화·사건·우주·연구 주제에 좋아요. <b>한국 공공 자료</b>(정책브리핑·국가기록원·e영상역사관 등 <b>공공누리 제1유형</b>)와 위키미디어 커먼즈·NASA의 <b>자유 이용 실제 사진·기록 영상</b>을 찾아 쓰고, 출처는 설명란에 자동으로 적어요.</div></div>
       <div class="src-box" id="longBox" hidden>
         <b style="font-size:15px">링크로 가져오기</b>
@@ -380,6 +388,11 @@ pre{white-space:pre-wrap;word-break:break-all;font-family:inherit;font-size:13px
     <div class="field"><label>유튜브 제목</label><input id="eTitle"></div>
     <div class="field"><label>유튜브 설명</label><textarea id="eDesc" rows="3"></textarea></div>
     <div class="sec" style="margin-top:18px"><h3>장면별 대본</h3></div>
+    <div id="eImgBar" hidden style="margin:10px 0;padding:12px;border-radius:12px;background:var(--soft)">
+      <b style="font-size:14px">🎨 내 이미지</b>
+      <div class="mini" style="margin:4px 0 8px">장면마다 문구를 복사해 앱에서 이미지를 만들고, 저장한 이미지를 아래에서 올리세요. 올린 뒤 장면마다 고르면 돼요.</div>
+      <label class="drop" style="margin:0"><input type="file" id="imgFile" accept="image/*" multiple hidden><b>＋ 이미지 올리기</b><span id="imgMsg">사진첩에서 여러 장 한 번에 골라도 돼요</span></label>
+    </div>
     <div id="eScenes"></div>
     <button class="add" id="eAdd">＋ 장면 추가</button>
   </div>
@@ -514,7 +527,7 @@ renderVoices(); updPrev();
 
 function look(extra){
   const o = { sub_size:pick("size"), sub_pos:pick("pos"), hook_size:pick("hook"), audio:pick("audio"), fill:pick("fill"),
-              style:pick("style"), rights:pick("rights"), src: pick("src") === "real" ? "real" : "",
+              style:pick("style"), rights:pick("rights"), src: ["real", "myimg"].includes(pick("src")) ? pick("src") : "",
               cat:pick("cat"), fact: $("factTg").getAttribute("aria-checked") === "true" ? "1" : "", font: curFont(), ai_max: pick("aimax") || "4",
               brief: $("brief").value.trim() ? b64u($("brief").value.trim().slice(0, 500)) : "", ...(extra||{}) };
   return Object.entries(o).map(([k, v]) => `${k}=${v}`).join(";");
@@ -525,6 +538,7 @@ function updSrc(){
   const src = pick("src"), own = src === "own", lng = src === "long";
   const stockLike = src === "stock" || src === "real";
   $("ownBox").hidden = !own; $("longBox").hidden = !lng; $("reviewSw").hidden = !stockLike; $("realNote").hidden = src !== "real";
+  $("myImgBox").hidden = src !== "myimg";
   $("mixBox").hidden = !((own && pick("otype") === "one") || (lng && pick("ltype") === "one"));
   $("topic").placeholder = src === "real" ? "예) 1947년 로즈웰 UFO 사건의 진실" : stockLike ? "예) 자기 전 스마트폰 30분이 몸에 주는 변화" : "주제 힌트 (비워두면 AI가 영상 보고 정해요)";
   if (own && clips === null) loadClips();
@@ -585,7 +599,7 @@ function postBlob(b64, onProg){
   });
 }
 async function upload(files){
-  files = [...files].filter(f => f.type.startsWith("video/") || /\.(mp4|mov|m4v|webm)$/i.test(f.name));
+  files = [...files].filter(f => f.type.startsWith("video/") || f.type.startsWith("image/") || /\.(mp4|mov|m4v|webm|jpe?g|png|webp)$/i.test(f.name));
   if (!files.length) return;
   const big = files.find(f => f.size > 2048 * 1048576);
   if (big) { $("upMsg").textContent = `${big.name} 파일이 ${(big.size / 1048576).toFixed(0)}MB라 너무 커요(최대 2GB). 구글 드라이브 링크로 해주세요.`; return; }
@@ -773,10 +787,10 @@ $("make").onclick = async () => {
   if (own && pick("otype") === "hl" && picked.length !== 1) { msg("makeMsg","하이라이트는 긴 영상 1개만 골라주세요.","err"); return; }
   if (lng && !/^https?:\/\/\S+/.test(url)) { msg("makeMsg","영상 링크를 붙여넣어 주세요.","err"); $("longUrl").focus(); return; }
   if (lng && /instagram\.com/.test(url) && pick("rights") === "cc") { msg("makeMsg","인스타그램 영상은 '내 영상' 또는 '허락받음'일 때만 쓸 수 있어요.","err"); return; }
-  if ((src === "stock" || src === "real") && !topic && !$("artUrl").value.trim() && !$("artText").value.trim()) { msg("makeMsg","주제를 입력하거나 참고 글을 첨부해주세요.","err"); $("topic").focus(); return; }
+  if ((src === "stock" || src === "real" || src === "myimg") && !topic && !$("artUrl").value.trim() && !$("artText").value.trim()) { msg("makeMsg","주제를 입력하거나 참고 글을 첨부해주세요.","err"); $("topic").focus(); return; }
   $("make").disabled = true; $("make").textContent = "주문 넣는 중…"; msg("makeMsg","");
   try {
-    const review = (src === "stock" || src === "real") && $("reviewTg").getAttribute("aria-checked") === "true";
+    const review = src === "myimg" || ((src === "stock" || src === "real") && $("reviewTg").getAttribute("aria-checked") === "true");
     const au = $("artUrl").value.trim(), at = $("artText").value.trim();
     const article = (src === "stock" || src === "real") && (au || at);
     await dispatch(article ? { topic, mode: "article", media: au ? "url::" + au : "text::" + b64e(at.slice(0, 30000)) } : own ? { topic, mode: pick("otype") === "hl" ? "long" : "own", media: picked.join("|"), credit: $("ownCredit").value.trim() }
@@ -963,15 +977,29 @@ $("drafts").addEventListener("click", e => {
   if (h) { if (!confirm("이 대본을 버릴까요?")) return; const d = drafts[+h.dataset.hide];
     removeRelease(d.id, d.tag).then(() => { toast("버렸어요"); loadShips(); }).catch(er => toast(er.message)); }
 });
+const IMG_RE = /\.(jpe?g|png|webp|gif)$/i;
+function imgOptions(sel){
+  const imgs = (clips || []).filter(c => IMG_RE.test(c.name));
+  return `<option value="">(이미지 없음 · 무료 영상)</option>` + imgs.map(c => `<option value="${esc(c.name)}" ${c.name === sel ? "selected" : ""}>${esc(c.name)}</option>`).join("");
+}
 function sceneHTML(sc, i){
+  const my = edit && edit.script && edit.script.myimg;
   return `<div class="scene" data-i="${i}"><div class="scene-h"><span>장면 ${i + 1}</span><button data-del="${i}">삭제</button></div>
     <textarea class="n" rows="2">${esc(sc.narration || "")}</textarea>
+    ${my ? `<div class="myimg" style="margin-top:8px;padding:10px;border-radius:10px;background:var(--soft)">
+      <div class="mini" style="margin:0 0 4px">🎨 이미지 문구 (앱에 붙여넣기)</div>
+      <div class="ip" style="font-size:14px;line-height:1.5;white-space:pre-wrap">${esc(sc.img_prompt || "")}</div>
+      <div style="display:flex;gap:6px;margin-top:8px;align-items:center">
+        <button class="pill light" data-cp="${i}" type="button">📋 문구 복사</button>
+        <select class="im cin" style="flex:1;margin:0;padding:8px">${imgOptions(sc.img)}</select></div></div>` : ""}
     <details><summary>자막 줄 나누기 직접 고치기</summary><textarea class="s" rows="3" style="margin-top:8px" placeholder="한 줄에 자막 하나씩">${esc((sc.subs || []).join("\n"))}</textarea></details></div>`;
 }
 function readScenes(){
   return [...document.querySelectorAll("#eScenes .scene")].map((el, i) => {
     const old = edit.script.scenes[+el.dataset.i] || {};
-    return { ...old, narration: el.querySelector(".n").value.trim(), subs: el.querySelector(".s").value.split("\n").map(x => x.trim()).filter(Boolean) };
+    const im = el.querySelector(".im");
+    return { ...old, narration: el.querySelector(".n").value.trim(), subs: el.querySelector(".s").value.split("\n").map(x => x.trim()).filter(Boolean),
+             ...(im ? { img: im.value } : {}) };
   }).filter(sc => sc.narration);
 }
 function drawScenes(list){ $("eScenes").innerHTML = list.map(sceneHTML).join(""); edit.script.scenes = list; }
@@ -982,12 +1010,25 @@ function openEditor(script, draftTag, title){
   $("eH1").value = script.hook_line1 || ""; $("eH2").value = script.hook_line2 || "";
   $("eTitle").value = script.title || ""; $("eDesc").value = script.description || "";
   drawScenes(edit.script.scenes || []);
+  $("eImgBar").hidden = !edit.script.myimg;
+  if (edit.script.myimg) loadClips().then(() => drawScenes(readScenes()));
   const o = opts(); $("eInfo").textContent = `${o.voice} · ${o.length}초 · 자막 ${o.sub_size}/${o.sub_pos} 설정으로 만들어요`;
   $("sheet").hidden = false; document.body.style.overflow = "hidden"; $("sheet").scrollTop = 0;
 }
+$("imgFile").onchange = async e => {
+  const fs = [...e.target.files]; if (!fs.length) return;
+  const keep = readScenes();
+  $("imgMsg").textContent = `${fs.length}장 올리는 중… 화면을 켜두세요`;
+  try { await upload(fs); await loadClips(); drawScenes(keep); $("imgMsg").textContent = `✅ ${fs.length}장 올렸어요. 장면마다 골라주세요`; }
+  catch (er) { $("imgMsg").textContent = er.message; }
+  e.target.value = "";
+};
 function closeEditor(){ $("sheet").hidden = true; document.body.style.overflow = ""; edit = null; }
 $("sheetClose").onclick = () => { if (confirm("고친 내용이 저장되지 않아요. 닫을까요?")) closeEditor(); };
-$("eScenes").addEventListener("click", e => {
+$("eScenes").addEventListener("click", async e => {
+  const cp = e.target.closest("[data-cp]");
+  if (cp) { const t = cp.closest(".myimg").querySelector(".ip").textContent;
+    try { await navigator.clipboard.writeText(t); toast("복사했어요. 제미나이·ChatGPT 앱에 붙여넣으세요"); } catch (er) { prompt("길게 눌러 복사하세요", t); } return; }
   const d = e.target.closest("[data-del]"); if (!d) return;
   const list = readScenes(); list.splice(+d.dataset.del, 1); drawScenes(list);
 });
@@ -1000,7 +1041,13 @@ $("eGo").onclick = async () => {
     title:$("eTitle").value.trim(), description:$("eDesc").value.trim(), scenes };
   $("eGo").disabled = true; $("eGo").textContent = "주문 넣는 중…";
   try {
-    const ownEdit = !!sc.media;
+    const ownEdit = !!sc.media && !sc.myimg;
+    if (sc.myimg) {
+      const imgs = [...new Set(scenes.map(x => x.img).filter(Boolean))];
+      if (!imgs.length && !confirm("고른 이미지가 없어요. 무료 영상으로만 만들까요?")) { $("eGo").disabled = false; $("eGo").textContent = "이 대본으로 영상 만들기"; return; }
+      await dispatch({ topic: sc.topic || sc.title, mode: "full", script: b64e(JSON.stringify(sc)), draft: edit.draft || "", media: imgs.join("|"), _look: { src: "myimg" } });
+      closeEditor(); toast("주문 완료! 8~10분 뒤 도착해요"); loadShips(); setTimeout(loadRuns, 4000); startPoll(); $("eGo").disabled = false; return;
+    }
     await dispatch({ topic: sc.topic || sc.title, mode: ownEdit ? "own" : "full", script: b64e(JSON.stringify(sc)), draft: edit.draft || "",
       ...(ownEdit ? { media: sc.media, credit: sc.credit || "", _look: { audio: sc.audio || "ai_mix", fill: sc.fill || "stock" } } : {}) });
     if (edit.draft) { let l = []; try { l = JSON.parse(localStorage.getItem("sff_hidden") || "[]"); } catch (er) {} l.push(edit.draft); try { localStorage.setItem("sff_hidden", JSON.stringify(l)); } catch (er) {} }
