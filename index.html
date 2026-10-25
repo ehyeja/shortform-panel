@@ -336,7 +336,8 @@ pre{white-space:pre-wrap;word-break:break-all;font-family:inherit;font-size:13px
     <section class="card" id="runs"><div class="empty">불러오는 중…</div></section>
 
     <!-- 완성된 영상 -->
-    <div class="sec"><h3>완성된 영상</h3><a href="https://studio.youtube.com" target="_blank" rel="noopener">유튜브 스튜디오 ↗</a></div>
+    <div class="sec"><h3>완성된 영상 <span class="mini" id="shipCount"></span></h3><a href="https://studio.youtube.com" target="_blank" rel="noopener">유튜브 스튜디오 ↗</a></div>
+    <div class="seg" id="shipTabs" style="margin:0 0 10px"><button aria-pressed="true" data-f="all">전체 (최신순)</button><button aria-pressed="false" data-f="ready">✓ 업로드 준비</button><button aria-pressed="false" data-f="review">⏸ 검수 대기</button></div>
     <div id="ships"><section class="card"><div class="empty">불러오는 중…</div></section></div>
 
     <section class="card" style="margin-top:14px">
@@ -387,6 +388,7 @@ const ICON = {
 const VOICES = [
   ["여성 밝음","Zephyr","또렷하고 밝은"],["여성 활기","Laomedeia","신나고 경쾌한"],["여성 차분","Kore","단단하고 차분한"],["여성 따뜻","Sulafat","부드럽고 따뜻한"],
   ["여성 상큼","Leda","젊고 상큼한"],["남성 활기","Puck","힘차고 밝은"],["남성 신뢰","Charon","믿음직한 정보형"],["남성 친근","Achird","편안하고 친근한"]];
+let shipShow = 10, shipFilter = "all", shipTotal = 0;
 let token = ""; let poll = null; let ships = []; let drafts = []; let holds = []; let samples = {}; let edit = null;
 const SET = "sff_settings";
 const IOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
@@ -753,6 +755,7 @@ $("make").onclick = async () => {
   $("make").disabled = false; $("make").textContent = "만들기";
 };
 
+function fmtDate(t){ const d = new Date(t); return `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`; }
 function ago(t){
   const m = Math.round((Date.now() - new Date(t)) / 60000);
   if (m < 1) return "방금"; if (m < 60) return m + "분 전";
@@ -797,7 +800,8 @@ function part(body, mark){
 
 async function loadShips(){
   try {
-    const all = await gh(`/releases?per_page=30`);
+    const all = (await gh(`/releases?per_page=100`))
+      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));   // 항상 최신 순으로
     const sm = all.find(r => r.tag_name === "voice-samples");
     samples = {}; (sm ? sm.assets : []).forEach(a => samples[a.name.replace(/\.mp3$/, "")] = a.browser_download_url);
     renderVoices();
@@ -821,7 +825,9 @@ async function loadShips(){
     $("drafts").innerHTML = drafts.map((d, i) => `<div class="draft" ${i ? 'style="margin-top:14px;padding-top:14px;border-top:1px solid var(--line)"' : ""}>
       <div style="min-width:0"><b>${esc(d.title)}</b><small>${ago(d.date)} · 대본 완성</small></div>
       <div class="btns"><button class="pill light" data-hide="${i}">버리기</button><button class="pill" data-open="${i}">확인·수정</button></div></div>`).join("");
-    const rels = all.filter(r => r.tag_name.startsWith("short-")).slice(0, 12);
+    const allShorts = all.filter(r => r.tag_name.startsWith("short-"));
+    shipTotal = allShorts.length;
+    const rels = allShorts.filter(r => shipFilter === "all" || (shipFilter === "review") === /검수 대기/.test(r.name)).slice(0, shipShow);
     ships = rels.map(r => { const b = (r.body || "").replace(/\r/g, "").replace(/<!--SCRIPT:[^>]*-->/, "");
       const ai = b.indexOf("🖼");
       const fr = b.indexOf("🔎") >= 0 ? b.slice(b.indexOf("🔎"), ai > 0 ? ai : undefined).trim() : "";
@@ -830,14 +836,14 @@ async function loadShips(){
       const pol = ((b.split("\n").find(l => l.startsWith("✅")) || "").split("/")[0] || "").replace(/✅|정책 검사:/g, "").trim();
       const om = /🎨 독창성 점수: (\d+)점/.exec(b);
       return { title: (part(b,"📌") || r.name).replace(/^\[검수 대기\] /, ""), desc: part(b,"📝"), pin: part(b,"💬"), pol, warn: part(b,"⚠️"), asset:(r.assets||[])[0], date:r.created_at, script:hidden(r.body), orig: om ? +om[1] : null, id:r.id, tag:r.tag_name, fr, av, rv }; });
-    if (!ships.length) { $("ships").innerHTML = `<section class="card"><div class="empty">완성된 영상이 여기에 쌓여요.</div></section>`; return; }
+    if (!ships.length) { $("ships").innerHTML = `<section class="card"><div class="empty">${shipFilter === "all" ? "완성된 영상이 여기에 쌓여요." : "해당하는 영상이 없어요."}</div></section>`; $("shipCount").textContent = `총 ${shipTotal}개`; return; }
     $("ships").innerHTML = ships.map((s, i) => `
       <section class="card vid">
         <div class="vid-top">
           <div class="thumb">▶</div>
           <div style="min-width:0">
             <h4>${esc(s.title)}</h4>
-            <div class="meta">${ago(s.date)} ${s.rv ? `<span class="badge warn">⏸ 검수 대기</span>` : `<span class="badge ok">✓ 업로드 준비</span>`} <span class="badge ${s.pol === "통과" ? "ok" : "warn"}">정책 ${esc(s.pol || "-")}</span>${s.orig !== null ? ` <span class="badge ${s.orig >= 60 ? "ok" : "warn"}">독창성 ${s.orig}점</span>` : ""}</div>
+            <div class="meta"><b style="color:var(--ink)">#${shipTotal - i}</b> ${fmtDate(s.date)} · ${ago(s.date)} ${s.rv ? `<span class="badge warn">⏸ 검수 대기</span>` : `<span class="badge ok">✓ 업로드 준비</span>`} <span class="badge ${s.pol === "통과" ? "ok" : "warn"}">정책 ${esc(s.pol || "-")}</span>${s.orig !== null ? ` <span class="badge ${s.orig >= 60 ? "ok" : "warn"}">독창성 ${s.orig}점</span>` : ""}</div>
           </div>
         </div>
         <div class="acts">
@@ -855,13 +861,20 @@ async function loadShips(){
         <button class="x" data-rm="${i}" style="border:0;background:none;color:var(--sub);font-size:12px;cursor:pointer;align-self:flex-end">🗑 이 영상 삭제</button>
         ${IOS && s.asset ? `<a class="mini" style="display:block;text-align:right;color:var(--sub)" href="${esc(s.asset.browser_download_url)}" target="_blank" rel="noopener">파일로 받기</a>` : ""}
       </section>`).join("");
+    const shown = ships.length, more = shipFilter === "all" ? shipTotal - shown : 0;
+    $("shipCount").textContent = `총 ${shipTotal}개`;
+    if (more > 0) $("ships").innerHTML += `<button class="add" id="shipMore">이전 영상 더 보기 (${more}개 남음)</button>`;
   } catch (e) { $("ships").innerHTML = `<section class="card"><div class="empty">${esc(e.message)}</div></section>`; }
 }
 async function removeRelease(id, tag){
   await gh(`/releases/${id}`, { method:"DELETE" });
   try { await gh(`/git/refs/tags/${encodeURIComponent(tag)}`, { method:"DELETE" }); } catch (e) {}
 }
+$("shipTabs").onclick = e => { const b = e.target.closest("[data-f]"); if (!b) return;
+  shipFilter = b.dataset.f; shipShow = 10;
+  document.querySelectorAll("#shipTabs button").forEach(x => x.setAttribute("aria-pressed", x === b ? "true" : "false")); loadShips(); };
 $("ships").addEventListener("click", async e => {
+  if (e.target.id === "shipMore") { shipShow += 10; loadShips(); return; }
   const rm = e.target.closest("[data-rm]");
   if (rm) { const s = ships[+rm.dataset.rm];
     if (!confirm(`'${s.title}' 영상을 삭제할까요? 되돌릴 수 없어요.`)) return;
