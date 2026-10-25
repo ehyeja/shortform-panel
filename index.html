@@ -303,6 +303,9 @@ pre{white-space:pre-wrap;word-break:break-all;font-family:inherit;font-size:13px
           <div class="seg" data-name="fill"><button aria-pressed="true" data-v="stock">무료 영상 채우기</button><button aria-pressed="false" data-v="own">원본 영상만</button></div></div>
       </div>
       <div class="opts">
+        <div class="opt"><label>AI 이미지 (영상 1개당 최대)</label>
+          <div class="seg" data-name="aimax"><button aria-pressed="false" data-v="0">안 씀</button><button aria-pressed="false" data-v="2">2장</button><button aria-pressed="true" data-v="4">4장</button><button aria-pressed="false" data-v="6">6장</button></div>
+          <div class="mini">무료 영상·사진과 골고루 섞어요. 제미나이 이미지는 유료일 수 있어요(1장 약 40~60원). 결제가 안 돼 있으면 자동으로 사진·영상만 써요.</div></div>
         <div class="opt"><label>길이</label>
           <div class="seg" data-name="len"><button aria-pressed="false" data-v="45">45초</button><button aria-pressed="true" data-v="50">50초</button><button aria-pressed="false" data-v="55">55초</button><button aria-pressed="false" data-v="60">60초</button></div></div>
         <div class="opt"><label>목소리</label>
@@ -457,7 +460,7 @@ document.querySelectorAll(".seg").forEach(seg => seg.onclick = e => {
 });
 const pick = name => document.querySelector(`.seg[data-name="${name}"] [aria-pressed="true"]`).dataset.v;
 function savePrefs(){
-  prefs = { len:pick("len"), spd:pick("spd"), size:pick("size"), pos:pick("pos"), hook:pick("hook"), src:pick("src"), ltype:pick("ltype"), otype:pick("otype"), style:pick("style"), rights:pick("rights"), cat:pick("cat"), fact:$("factTg").getAttribute("aria-checked"), font:curFont(), audio:pick("audio"), fill:pick("fill"),
+  prefs = { len:pick("len"), spd:pick("spd"), size:pick("size"), pos:pick("pos"), hook:pick("hook"), src:pick("src"), ltype:pick("ltype"), otype:pick("otype"), style:pick("style"), rights:pick("rights"), cat:pick("cat"), aimax:pick("aimax"), fact:$("factTg").getAttribute("aria-checked"), font:curFont(), audio:pick("audio"), fill:pick("fill"),
             voice:curVoice(), review:$("reviewTg").getAttribute("aria-checked")==="true" };
   try { localStorage.setItem(SET, JSON.stringify(prefs)); } catch (e) {}
   updPrev(); updSrc();
@@ -495,7 +498,7 @@ $("reviewSw").onclick = () => { const t = $("reviewTg"); t.setAttribute("aria-ch
 // 저장된 설정 불러오기
 if (prefs.len) setSeg("len", prefs.len); if (prefs.spd) setSeg("spd", prefs.spd);
 if (prefs.size) setSeg("size", prefs.size); if (prefs.pos) setSeg("pos", prefs.pos);
-["hook","src","audio","fill","ltype","otype","style","rights","cat"].forEach(k => { if (prefs[k]) setSeg(k, prefs[k]); });
+["hook","src","audio","fill","ltype","otype","style","rights","cat","aimax"].forEach(k => { if (prefs[k]) setSeg(k, prefs[k]); });
 $("reviewTg").setAttribute("aria-checked", prefs.review ? "true" : "false");
 if (prefs.fact) $("factTg").setAttribute("aria-checked", prefs.fact);
 $("factSw").onclick = () => { const t = $("factTg"); t.setAttribute("aria-checked", t.getAttribute("aria-checked") === "true" ? "false" : "true"); savePrefs(); };
@@ -512,7 +515,7 @@ renderVoices(); updPrev();
 function look(extra){
   const o = { sub_size:pick("size"), sub_pos:pick("pos"), hook_size:pick("hook"), audio:pick("audio"), fill:pick("fill"),
               style:pick("style"), rights:pick("rights"), src: pick("src") === "real" ? "real" : "",
-              cat:pick("cat"), fact: $("factTg").getAttribute("aria-checked") === "true" ? "1" : "", font: curFont(),
+              cat:pick("cat"), fact: $("factTg").getAttribute("aria-checked") === "true" ? "1" : "", font: curFont(), ai_max: pick("aimax") || "4",
               brief: $("brief").value.trim() ? b64u($("brief").value.trim().slice(0, 500)) : "", ...(extra||{}) };
   return Object.entries(o).map(([k, v]) => `${k}=${v}`).join(";");
 }
@@ -833,10 +836,21 @@ function part(body, mark){
   return rest.slice(0, end).trim();
 }
 
+// 만든 시각: GitHub의 created_at은 '코드 날짜'라서 영상끼리 같을 수 있어요 → 이름(short-20261025-143005)에 적힌 시각을 먼저 사용
+function relTime(r){
+  const m = /(\d{4})(\d{2})(\d{2})-(\d{2})(\d{2})(\d{2})/.exec(r.tag_name || "");
+  if (m) return new Date(`${m[1]}-${m[2]}-${m[3]}T${m[4]}:${m[5]}:${m[6]}+09:00`).getTime();
+  return new Date(r.published_at || r.created_at).getTime();
+}
 async function loadShips(){
   try {
-    const all = (await gh(`/releases?per_page=100`))
-      .sort((a, b) => new Date(b.published_at || b.created_at) - new Date(a.published_at || a.created_at));   // 항상 최신 순으로
+    let all = [];
+    for (let p = 1; p <= 4; p++) {                // 영상이 많아도 최신 것이 빠지지 않게 여러 쪽 불러오기
+      const page = await gh(`/releases?per_page=100&page=${p}`);
+      all = all.concat(page); if (page.length < 100) break;
+    }
+    all.forEach(r => { r._t = relTime(r); r.created_at = new Date(r._t).toISOString(); });
+    all.sort((a, b) => b._t - a._t);              // 항상 최근에 만든 것이 맨 위
     const sm = all.find(r => r.tag_name === "voice-samples");
     samples = {}; (sm ? sm.assets : []).forEach(a => samples[a.name.replace(/\.mp3$/, "")] = a.browser_download_url);
     renderVoices();
