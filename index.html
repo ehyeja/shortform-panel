@@ -215,10 +215,23 @@ pre{white-space:pre-wrap;word-break:break-all;font-family:inherit;font-size:13px
       <textarea id="topic" rows="3" placeholder="예) 자기 전 스마트폰 30분이 몸에 주는 변화"></textarea>
       <div class="ideas" id="ideas"></div>
       <div class="opt" style="margin-top:14px"><label style="font-size:13px;font-weight:700;color:var(--sub);display:block;margin-bottom:8px">분야</label>
-        <div class="seg" data-name="cat" style="flex-wrap:wrap"><button aria-pressed="true" data-v="live">실시간</button><button aria-pressed="false" data-v="policy">정책·법</button><button aria-pressed="false" data-v="fact">연구</button><button aria-pressed="false" data-v="drama">드라마</button><button aria-pressed="false" data-v="life">생활</button></div>
+        <div class="seg" data-name="cat" style="flex-wrap:wrap"><button aria-pressed="true" data-v="live">실시간</button><button aria-pressed="false" data-v="policy">정책·법</button><button aria-pressed="false" data-v="fact">연구</button><button aria-pressed="false" data-v="health">건강</button><button aria-pressed="false" data-v="fitness">운동</button><button aria-pressed="false" data-v="ent">연예</button><button aria-pressed="false" data-v="drama">드라마</button><button aria-pressed="false" data-v="life">생활</button></div>
         <div class="mini" id="catNote"></div></div>
       <button class="idea" id="askIdeas" style="margin-top:10px;color:var(--accent);border-color:var(--accent)">💡 추천 주제 5개 받기</button>
       <div class="mini">주제 칸에 키워드를 쓰면 그 키워드로, 비워두면 오늘의 인기 주제로 추천해요.</div>
+      <details id="briefBox" style="margin-top:12px"><summary style="font-size:14px;font-weight:700;color:var(--ink);cursor:pointer">🎬 영상 요청 메모 (선택) — 어떤 영상·사진으로 만들지</summary>
+        <textarea class="cin" id="brief" rows="3" style="resize:vertical" placeholder="예) 실제로 운동하는 사람 장면 위주로, 마지막에 따라 하기 쉬운 팁 3개 정리해줘 / 연구 결과는 그래프로 보여줘 / 밝고 경쾌한 분위기로"></textarea>
+        <div class="ideas" id="briefChips" style="flex-wrap:wrap">
+          <button class="idea" data-b="실제 사람이 나오는 장면 위주로">사람 장면 위주</button>
+          <button class="idea" data-b="실제 사진·기록 자료를 최대한 넣어줘">실제 사진 위주</button>
+          <button class="idea" data-b="숫자가 나오면 그래프로 보여줘">그래프 넣기</button>
+          <button class="idea" data-b="마지막에 따라 하기 쉬운 팁 3개로 정리해줘">팁 3개 정리</button>
+          <button class="idea" data-b="전후 비교 장면을 넣어줘">전후 비교</button>
+          <button class="idea" data-b="밝고 경쾌한 분위기로">밝은 분위기</button>
+          <button class="idea" data-b="차분하고 신뢰감 있는 분위기로">차분한 분위기</button>
+        </div>
+        <div class="mini">적은 내용은 대본 구성, 장면 고르기, 사진 검색에 반영돼요. 단, 확인 안 된 사실이나 저작권 있는 자료는 메모에 있어도 쓰지 않아요.</div>
+      </details>
       <div id="ideaBox" hidden style="margin-top:10px;padding:12px;border-radius:14px;background:var(--soft)"></div>
       <div class="switch" id="factSw" style="margin-top:14px">
         <div><b>자료 조사 + 사실 검증</b><span>검색으로 실제 자료를 모으고, 근거가 확인된 사실만 써요. 핵심 사실이 확인 안 되면 영상을 만들지 않아요</span></div>
@@ -468,7 +481,10 @@ $("reviewTg").setAttribute("aria-checked", prefs.review ? "true" : "false");
 if (prefs.fact) $("factTg").setAttribute("aria-checked", prefs.fact);
 $("factSw").onclick = () => { const t = $("factTg"); t.setAttribute("aria-checked", t.getAttribute("aria-checked") === "true" ? "false" : "true"); savePrefs(); };
 const CATNOTE = { live:"한국 사이트(언론사·포털·공식 기관)만 확인해요", policy:"정책브리핑·고용노동부·국가법령정보센터·정부24 등 공식 자료를 우선해요. 시행 중/시행 예정/검토 중을 구분해요",
-  fact:"국내외 자료를 모두 찾고, 확인된 사실만 써요", drama:"공식 방송사 소개·회차 정보·기사 위주로, 한국 사이트만 확인해요", life:"국내외 자료에서 확인된 사실만 써요" };
+  fact:"국내외 자료를 모두 찾고, 확인된 사실만 써요",
+  health:"질병관리청·식약처 등 공공보건 자료와 논문(PubMed)을 우선해요. 과장된 효과는 쓰지 않아요",
+  fitness:"운동·다이어트 연구와 전문기관 자료를 우선하고, 커뮤니티 화제는 주제 찾기에만 써요",
+  ent:"연예 뉴스 랭킹·공식 발표 위주로, 한국 사이트만 확인해요. 루머·사생활은 다루지 않아요", drama:"공식 방송사 소개·회차 정보·기사 위주로, 한국 사이트만 확인해요", life:"국내외 자료에서 확인된 사실만 써요" };
 function catNote(){ $("catNote").textContent = CATNOTE[pick("cat")] || ""; }
 document.querySelector('.seg[data-name="cat"]').addEventListener("click", () => setTimeout(catNote)); catNote();
 $("reloadAll").onclick = () => { location.href = location.pathname + "?v=" + Date.now(); };
@@ -477,7 +493,8 @@ renderVoices(); updPrev();
 function look(extra){
   const o = { sub_size:pick("size"), sub_pos:pick("pos"), hook_size:pick("hook"), audio:pick("audio"), fill:pick("fill"),
               style:pick("style"), rights:pick("rights"), src: pick("src") === "real" ? "real" : "",
-              cat:pick("cat"), fact: $("factTg").getAttribute("aria-checked") === "true" ? "1" : "", font: curFont(), ...(extra||{}) };
+              cat:pick("cat"), fact: $("factTg").getAttribute("aria-checked") === "true" ? "1" : "", font: curFont(),
+              brief: $("brief").value.trim() ? b64u($("brief").value.trim().slice(0, 500)) : "", ...(extra||{}) };
   return Object.entries(o).map(([k, v]) => `${k}=${v}`).join(";");
 }
 let clips = null; let picked = [];
@@ -682,7 +699,8 @@ function showIdeas(rel){
     const x = items[+b.dataset.idea]; $("topic").value = x.topic;
     if (x.cat && ["live","policy","fact","drama","life"].includes(x.cat)) { setSeg("cat", x.cat); catNote(); }
     if (x.src === "real") setSeg("src", "real"); else if (pick("src") === "real") setSeg("src", "stock");
-    savePrefs(); $("topic").scrollIntoView({ behavior:"smooth", block:"center" }); toast("주제를 넣었어요");
+    savePrefs(); $("briefBox").open = true; $("topic").scrollIntoView({ behavior:"smooth", block:"center" });
+    toast("주제를 넣었어요. 원하는 영상·사진이 있으면 요청 메모에 적어주세요");
   };
   if (ideaWait && new Date(rel.created_at).getTime() > ideaWait - 60000) {
     ideaWait = 0; $("askIdeas").disabled = false; $("askIdeas").textContent = "💡 추천 주제 5개 받기"; toast("추천 주제가 도착했어요");
@@ -693,6 +711,10 @@ function setFont(k){ document.querySelectorAll("#fonts .fnt").forEach(b => b.set
 setFont(prefs.font || "");
 $("fonts").addEventListener("click", e => { const b = e.target.closest(".fnt"); if (!b) return; setFont(b.dataset.font); savePrefs(); });
 function curFont(){ const b = document.querySelector('#fonts [aria-pressed="true"]'); return b ? b.dataset.font : ""; }
+
+$("briefChips").onclick = e => { const b = e.target.closest("[data-b]"); if (!b) return;
+  const t = $("brief"); t.value = (t.value.trim() ? t.value.trim() + " / " : "") + b.dataset.b; };
+const b64u = str => b64e(str).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 
 function opts(extra){ return { length:pick("len"), voice:curVoice(), speed:pick("spd"), look:look(extra) }; }
 async function dispatch(inputs){
@@ -721,6 +743,7 @@ $("make").onclick = async () => {
       : lng ? { topic, mode: pick("ltype") === "hl" ? "long" : "own", media: url, credit: $("longCredit").value.trim() }
       : { topic, mode: review ? "script" : "full" });
     if (article) { $("artUrl").value = ""; $("artText").value = ""; }
+    $("brief").value = ""; $("briefBox").open = false;
     if (lng) { $("longUrl").value = ""; $("longCredit").value = ""; longHint.done = false; longHint(); }
     msg("makeMsg", review ? "대본 쓰는 중! 1~2분 뒤 '대본 확인 대기'에 나타나요."
       : (lng || (own && pick("otype") === "hl")) ? "주문 완료! 긴 영상은 길이에 따라 15~40분 걸려요. 완성되면 아래에 도착해요."
