@@ -62,7 +62,23 @@ textarea:focus,input:focus{outline:none;border-color:var(--ink);background:var(-
 .opts{display:grid;gap:14px;margin-top:20px}
 .opt label{display:block;font-size:13px;font-weight:700;color:var(--sub);margin-bottom:8px}
 .seg{display:flex;background:var(--soft);border-radius:12px;padding:4px;gap:4px}
-.seg button{flex:1;border:0;background:transparent;border-radius:9px;padding:10px 4px;font-size:15px;font-weight:600;color:var(--sub);cursor:pointer;transition:background .15s,color .15s}
+.seg button{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border:0;background:transparent;border-radius:9px;padding:10px 2px;font-size:15px;font-weight:600;color:var(--sub);cursor:pointer;transition:background .15s,color .15s}
+.seg:has(> button:nth-child(5)){flex-wrap:wrap}                                      /* 버튼이 5개 이상이면 두 줄로 (글자가 잘리지 않게) */
+.seg:has(> button:nth-child(5)) button{flex:1 0 30%}
+.seg[data-name="cat"] button{flex:1 0 22%}
+html,body{overflow-x:hidden;max-width:100%}
+.idea{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#askIdeas,#moreIdeasTop{min-width:0}
+/* 설정 칸을 색으로 구분 */
+.grp{border-left:4px solid var(--gc);padding-left:12px;margin-left:-2px}
+.grp > label,.grp > div > label{color:var(--gc)!important}
+.grp-blue{--gc:#2f6fed}.grp-orange{--gc:#e8743b}.grp-teal{--gc:#139a8f}.grp-yellow{--gc:#c99400}.grp-pink{--gc:#d4497a}.grp-gray{--gc:#6b7280}
+#briefBox{background:#f4effd!important;border:1px solid #e1d5fa}
+#briefBox > summary{color:#7c4ddb!important}
+#factSw{background:#eaf7ef!important;border:1px solid #cfeedd}
+#factSw b{color:#1a8f4a}
+#reviewSw{background:#eef3fd!important;border:1px solid #d6e2fb}
+#artBox > summary{color:#2f6fed!important}
 .seg button[aria-pressed="true"]{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
 .primary{width:100%;margin-top:22px;border:0;border-radius:16px;background:var(--accent);color:#fff;font-size:18px;font-weight:800;padding:17px;cursor:pointer;transition:transform .08s,opacity .15s}
 .primary:active{transform:scale(.98)}
@@ -229,7 +245,7 @@ pre{white-space:pre-wrap;word-break:break-all;font-family:inherit;font-size:13px
         <div class="mini" id="catNote"></div></div>
       <div style="display:flex;gap:8px;margin-top:10px">
         <button class="idea" id="askIdeas" style="flex:1;color:var(--accent);border-color:var(--accent)">💡 추천 주제 5개 받기</button>
-        <button class="idea" id="moreIdeasTop" style="flex:1">🔄 추천 주제 다시 뽑기</button>
+        <button class="idea" id="moreIdeasTop" style="flex:1">🔄 다시 뽑기</button>
       </div>
       <div class="mini">주제 칸에 키워드를 쓰면 그 키워드로, 비워두면 오늘의 인기 주제로 추천해요.</div>
       <div id="ideaBox" hidden style="margin-top:10px;padding:12px;border-radius:14px;background:var(--soft)"></div>
@@ -325,7 +341,7 @@ pre{white-space:pre-wrap;word-break:break-all;font-family:inherit;font-size:13px
           <div class="fonts" id="fonts"><button class="fnt" data-font="" aria-pressed="false" style="font-family:&quot;Pretendard&quot;,sans-serif;font-weight:900"><div class="s"><i>실화</i> 바탕!?</div><small>기본</small></button><button class="fnt" data-font="blackhansans" aria-pressed="false" style="font-family:&quot;Black Han Sans&quot;,sans-serif;font-weight:400"><div class="s"><i>실화</i> 바탕!?</div><small>블랙한산스</small></button><button class="fnt" data-font="gmarket" aria-pressed="false" style="font-family:&quot;Gmarket Sans&quot;,sans-serif;font-weight:700"><div class="s"><i>실화</i> 바탕!?</div><small>G마켓 산스</small></button><button class="fnt" data-font="pretendard" aria-pressed="false" style="font-family:&quot;Pretendard&quot;,sans-serif;font-weight:900"><div class="s"><i>실화</i> 바탕!?</div><small>프리텐다드</small></button><button class="fnt" data-font="paperlogy" aria-pressed="false" style="font-family:&quot;Paperlogy&quot;,sans-serif;font-weight:900"><div class="s"><i>실화</i> 바탕!?</div><small>페이퍼로지</small></button><button class="fnt" data-font="jalnan" aria-pressed="false" style="font-family:&quot;Jalnan Gothic&quot;,sans-serif;font-weight:400"><div class="s"><i>실화</i> 바탕!?</div><small>잘난체</small></button><button class="fnt" data-font="scdream" aria-pressed="false" style="font-family:&quot;S-Core Dream&quot;,sans-serif;font-weight:900"><div class="s"><i>실화</i> 바탕!?</div><small>에스코어 드림</small></button><button class="fnt" data-font="tmon" aria-pressed="false" style="font-family:&quot;Tmon Monsori&quot;,sans-serif;font-weight:400"><div class="s"><i>실화</i> 바탕!?</div><small>티몬 몬소리</small></button><button class="fnt" data-font="ssurround" aria-pressed="false" style="font-family:&quot;Cafe24 Ssurround&quot;,sans-serif;font-weight:400"><div class="s"><i>실화</i> 바탕!?</div><small>써라운드</small></button><button class="fnt" data-font="danjunghae" aria-pressed="false" style="font-family:&quot;Cafe24 Danjunghae&quot;,sans-serif;font-weight:400"><div class="s"><i>실화</i> 바탕!?</div><small>단정해</small></button><button class="fnt" data-font="dangdanghae" aria-pressed="false" style="font-family:&quot;Cafe24 Dangdanghae&quot;,sans-serif;font-weight:400"><div class="s"><i>실화</i> 바탕!?</div><small>당당해</small></button><button class="fnt" data-font="ohsquare" aria-pressed="false" style="font-family:&quot;Cafe24 Ohsquare&quot;,sans-serif;font-weight:400"><div class="s"><i>실화</i> 바탕!?</div><small>아네모네</small></button><button class="fnt" data-font="ssurround_air" aria-pressed="false" style="font-family:&quot;Cafe24 Ssurround Air&quot;,sans-serif;font-weight:400"><div class="s"><i>실화</i> 바탕!?</div><small>써라운드 에어</small></button><button class="fnt" data-font="ssukssuk" aria-pressed="false" style="font-family:&quot;Cafe24 Ssukssuk&quot;,sans-serif;font-weight:400"><div class="s"><i>실화</i> 바탕!?</div><small>쑥쑥</small></button><button class="fnt" data-font="simplehae" aria-pressed="false" style="font-family:&quot;Cafe24 Simplehae&quot;,sans-serif;font-weight:400"><div class="s"><i>실화</i> 바탕!?</div><small>심플해</small></button><button class="fnt" data-font="syongsyong" aria-pressed="false" style="font-family:&quot;Cafe24 Syongsyong&quot;,sans-serif;font-weight:400"><div class="s"><i>실화</i> 바탕!?</div><small>숑숑</small></button></div></div>
         <div class="opt"><label>제목 크기</label>
           <div class="seg" data-name="hook"><button aria-pressed="false" data-v="작게">작게</button><button aria-pressed="true" data-v="보통">보통</button><button aria-pressed="false" data-v="크게">크게</button></div></div>
-        <div class="opt subrow">
+        <div class="opt subrow grp grp-yellow">
           <div>
             <label>자막 크기</label>
             <div class="seg" data-name="size"><button aria-pressed="false" data-v="작게">작게</button><button aria-pressed="true" data-v="보통">보통</button><button aria-pressed="false" data-v="크게">크게</button></div>
@@ -709,7 +725,7 @@ $("ownCredit").addEventListener("change", ccHint);
 // 💡 추천 주제
 $("askIdeas").onclick = async () => {
   const kw = $("topic").value.trim();
-  $("askIdeas").disabled = true; $("askIdeas").textContent = kw ? "💡 추천 주제 뽑는 중… (약 1분)" : "💡 오늘의 인기 주제 찾는 중… (약 1분)";
+  $("askIdeas").disabled = true; $("askIdeas").textContent = "💡 찾는 중… (약 1분)";
   try { await dispatch({ topic: kw, mode: "ideas" }); ideaWait = Date.now(); startPoll(); setTimeout(loadRuns, 4000); }
   catch (e) { msg("makeMsg", e.message, "err"); $("askIdeas").disabled = false; $("askIdeas").textContent = "💡 추천 주제 5개 받기"; }
 };
@@ -757,18 +773,28 @@ $("briefChips").onclick = e => { const b = e.target.closest("[data-b]"); if (!b)
   const t = $("brief"); t.value = (t.value.trim() ? t.value.trim() + " / " : "") + b.dataset.b; };
 const b64u = str => b64e(str).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 
-// 🔄 추천 주제 다시 뽑기: 이미 추천받은 주제는 빼고 새로
+// 🔄 다시 뽑기: 이미 추천받은 주제는 빼고 새로
 $("moreIdeasTop").onclick = async () => {
   const last = window._lastIdeas;
   const kw = $("topic").value.trim() || (last && last.kw !== "오늘의 인기" ? last.kw : "");
   const prev = (window._prevIdeas || []).concat(last ? last.topics : []).slice(-20); window._prevIdeas = prev;
-  $("moreIdeasTop").disabled = true; $("moreIdeasTop").textContent = "🔄 새 주제 찾는 중…";
+  $("moreIdeasTop").disabled = true; $("moreIdeasTop").textContent = "🔄 찾는 중…";
   try {
     await dispatch({ topic: kw, mode: "ideas", _look: prev.length ? { exclude: b64u(prev.join("|")) } : {} });
     ideaWait = Date.now(); startPoll(); setTimeout(loadRuns, 4000); toast("약 1분 뒤 새 추천 주제가 나와요");
   } catch (er) { toast(er.message); }
-  setTimeout(() => { $("moreIdeasTop").disabled = false; $("moreIdeasTop").textContent = "🔄 추천 주제 다시 뽑기"; }, 60000);
+  setTimeout(() => { $("moreIdeasTop").disabled = false; $("moreIdeasTop").textContent = "🔄 다시 뽑기"; }, 60000);
 };
+
+// 설정 칸을 종류별 색으로 구분
+(function colorGroups(){
+  const map = [[/^분야/, "blue"], [/화면에 쓸 영상|AI 이미지|만들기 방식|영상 종류|이 영상은|원본 소리|빈 곳/, "orange"],
+               [/길이|목소리|말 속도/, "teal"], [/폰트|제목 크기|자막 크기|자막 위치/, "yellow"], [/해석 스타일|리뷰 관점/, "pink"]];
+  document.querySelectorAll(".opt").forEach(o => {
+    const l = o.querySelector(":scope > label"); if (!l) return;
+    const m = map.find(([re]) => re.test(l.textContent.trim())); if (m) o.classList.add("grp", "grp-" + m[1]);
+  });
+})();
 
 function opts(extra){ return { length:pick("len"), voice:curVoice(), speed:pick("spd"), look:look(extra) }; }
 async function dispatch(inputs){
