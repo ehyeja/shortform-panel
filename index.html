@@ -218,7 +218,6 @@ pre{white-space:pre-wrap;word-break:break-all;font-family:inherit;font-size:13px
       <h2>어떤 쇼츠를 만들까요?</h2>
       <p class="desc">주제만 적으면 대본·목소리·편집까지 자동으로 만들어요.</p>
       <textarea id="topic" rows="3" placeholder="예) 자기 전 스마트폰 30분이 몸에 주는 변화"></textarea>
-      <div class="ideas" id="ideas"></div>
       <div class="opt" style="margin-top:14px"><label style="font-size:13px;font-weight:700;color:var(--sub);display:block;margin-bottom:8px">분야</label>
         <div class="seg" data-name="cat" style="flex-wrap:wrap"><button aria-pressed="true" data-v="live">실시간</button><button aria-pressed="false" data-v="policy">정책·법</button><button aria-pressed="false" data-v="fact">연구</button><button aria-pressed="false" data-v="health">건강</button><button aria-pressed="false" data-v="fitness">운동</button><button aria-pressed="false" data-v="ent">연예</button><button aria-pressed="false" data-v="drama">드라마</button><button aria-pressed="false" data-v="life">생활</button></div>
         <div class="mini" id="catNote"></div></div>
@@ -228,7 +227,7 @@ pre{white-space:pre-wrap;word-break:break-all;font-family:inherit;font-size:13px
       </div>
       <div class="mini">주제 칸에 키워드를 쓰면 그 키워드로, 비워두면 오늘의 인기 주제로 추천해요.</div>
       <div id="ideaBox" hidden style="margin-top:10px;padding:12px;border-radius:14px;background:var(--soft)"></div>
-      <details id="briefBox" style="margin-top:12px"><summary style="font-size:14px;font-weight:700;color:var(--ink);cursor:pointer">🎬 영상 요청 메모 (선택) — 어떤 영상·사진으로 만들지</summary>
+      <details id="briefBox" open style="margin-top:12px"><summary style="font-size:14px;font-weight:700;color:var(--ink);cursor:pointer">🎬 영상 요청 메모 (선택) — 어떤 영상·사진으로 만들지</summary>
         <textarea class="cin" id="brief" rows="3" style="resize:vertical" placeholder="예) 실제로 운동하는 사람 장면 위주로, 마지막에 따라 하기 쉬운 팁 3개 정리해줘 / 연구 결과는 그래프로 보여줘 / 밝고 경쾌한 분위기로"></textarea>
         <div class="ideas" id="briefChips" style="flex-wrap:wrap">
           <button class="idea" data-b="실제 사람이 나오는 장면 위주로">사람 장면 위주</button>
@@ -440,8 +439,6 @@ $("cancelTok").onclick = () => { $("tokOld").hidden = true; show(); };
 $("delTok").onclick = () => { if (!confirm("이 기기에서 출입증을 지울까요?")) return;
   try { localStorage.removeItem(KEY); } catch (e) {} token=""; $("tokOld").hidden=true; show(); };
 
-$("ideas").innerHTML = IDEAS.map(t => `<button class="idea">${esc(t)}</button>`).join("");
-$("ideas").onclick = e => { const b = e.target.closest(".idea"); if (b) { $("topic").value = b.textContent; $("topic").focus(); } };
 document.querySelectorAll(".seg").forEach(seg => seg.onclick = e => {
   const b = e.target.closest("button"); if (!b) return;
   seg.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b ? "true" : "false"));
@@ -694,7 +691,7 @@ function showIdeas(rel){
   let items = [], stat = ""; try { const d = JSON.parse(b64d(m[1])); items = Array.isArray(d) ? d : d.items; stat = d.status || ""; } catch (e) { return; }
   $("ideaBox").hidden = false;
   const kwLabel = rel.name.replace("[추천] ", "");
-  const wasOpen = $("ideaBox").dataset.open !== "0";
+  const wasOpen = $("ideaBox").dataset.open === "1";   // 기본은 접어두기
   $("ideaBox").innerHTML = `<details id="ideaDet" ${wasOpen ? "open" : ""}><summary style="cursor:pointer;display:flex;justify-content:space-between;align-items:center;list-style:none">
       <b style="font-size:14px">💡 ${esc(kwLabel)} 추천 주제 ${items.length}개</b><span class="mini">펼치기/접기 ▾</span></summary>
     ${stat ? `<div class="mini" style="margin:6px 0 8px">📡 수집: ${esc(stat)}</div>` : ""}`
@@ -771,7 +768,7 @@ $("make").onclick = async () => {
       : lng ? { topic, mode: pick("ltype") === "hl" ? "long" : "own", media: url, credit: $("longCredit").value.trim() }
       : { topic, mode: review ? "script" : "full" });
     if (article) { $("artUrl").value = ""; $("artText").value = ""; }
-    $("brief").value = ""; $("briefBox").open = false;
+    $("brief").value = "";
     if (lng) { $("longUrl").value = ""; $("longCredit").value = ""; longHint.done = false; longHint(); }
     msg("makeMsg", review ? "대본 쓰는 중! 1~2분 뒤 '대본 확인 대기'에 나타나요."
       : (lng || (own && pick("otype") === "hl")) ? "주문 완료! 긴 영상은 길이에 따라 15~40분 걸려요. 완성되면 아래에 도착해요."
@@ -859,9 +856,10 @@ async function loadShips(){
       const fr = b.indexOf("🔎") >= 0 ? b.slice(b.indexOf("🔎"), ai > 0 ? ai : undefined).trim() : "";
       const av = ai >= 0 ? b.slice(ai).trim() : "";
       const rv = (/⏸ 검수 대기: (.*)/.exec(b) || [])[1] || "";
+      const rs = (/🔬 자료 조사: (.*)/.exec(b) || [])[1] || "";
       const pol = ((b.split("\n").find(l => l.startsWith("✅")) || "").split("/")[0] || "").replace(/✅|정책 검사:/g, "").trim();
       const om = /🎨 독창성 점수: (\d+)점/.exec(b);
-      return { title: (part(b,"📌") || r.name).replace(/^\[검수 대기\] /, ""), desc: part(b,"📝"), pin: part(b,"💬"), pol, warn: part(b,"⚠️"), asset:(r.assets||[])[0], date:r.created_at, script:hidden(r.body), orig: om ? +om[1] : null, id:r.id, tag:r.tag_name, fr, av, rv }; });
+      return { title: (part(b,"📌") || r.name).replace(/^\[검수 대기\] /, ""), desc: part(b,"📝"), pin: part(b,"💬"), pol, warn: part(b,"⚠️"), asset:(r.assets||[])[0], date:r.created_at, script:hidden(r.body), orig: om ? +om[1] : null, id:r.id, tag:r.tag_name, fr, av, rv, rs }; });
     if (!ships.length) { $("ships").innerHTML = `<section class="card"><div class="empty">${shipFilter === "all" ? "완성된 영상이 여기에 쌓여요." : "해당하는 영상이 없어요."}</div></section>`; $("shipCount").textContent = `총 ${shipTotal}개`; return; }
     $("ships").innerHTML = ships.map((s, i) => `
       <section class="card vid">
@@ -881,6 +879,7 @@ async function loadShips(){
           <button class="act" data-e="${i}" ${s.script ? "" : "disabled style=\"opacity:.4\""}>${ICON.edit}수정</button>
         </div>
         ${s.warn ? `<details><summary>⚠️ 고칠 점 보기</summary><pre>${esc(s.warn)}</pre></details>` : ""}
+        ${s.rs ? `<div class="mini" style="color:${s.rs.startsWith("완료") ? "var(--green, #1a8f4a)" : "#c26a00"};font-weight:600">🔬 자료 조사: ${esc(s.rs)}</div>` : ""}
         ${s.rv ? `<div class="hint">⏸ 검수 대기 이유: ${esc(s.rv)} · 확인 후 직접 판단해서 올려주세요</div>` : ""}
         ${s.fr ? `<details><summary>🔎 사실 검증·출처 보기</summary><pre>${esc(s.fr)}</pre></details>` : ""}
         ${s.av ? `<details><summary>🖼 시각 자료·이용 조건 보기</summary><pre>${esc(s.av)}</pre></details>` : ""}
