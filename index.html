@@ -201,8 +201,13 @@ pre{white-space:pre-wrap;word-break:break-all;font-family:inherit;font-size:13px
 
   <!-- 처음 설정 -->
   <section class="card" id="setup" hidden>
-    <h2>시작하기</h2>
-    <p class="desc">GitHub에서 만든 출입증을 한 번만 붙여넣어 주세요. 이 기기에만 저장돼요.</p>
+    <h2 id="setupTitle">시작하기</h2>
+    <p class="desc" id="setupDesc">GitHub에서 만든 출입증을 한 번만 붙여넣어 주세요. 이 기기에만 저장돼요.</p>
+    <div id="haveTok" hidden style="margin-bottom:14px">
+      <div class="hint" style="margin-bottom:10px">✅ 출입증이 이미 저장돼 있어요. <b>다시 입력할 필요 없어요.</b></div>
+      <button class="primary" id="copyTok" style="margin:0">📋 사진첩 저장 단축어용 출입증 복사</button>
+      <div class="mini" style="margin-top:6px">출입증을 바꿀 때만 아래 칸에 새로 입력하세요.</div>
+    </div>
     <input type="password" id="tok" autocomplete="off" placeholder="github_pat_로 시작하는 출입증">
     <button class="primary" id="saveTok">저장하고 시작</button>
     <div class="msg" id="tokMsg" role="status"></div>
@@ -210,7 +215,7 @@ pre{white-space:pre-wrap;word-break:break-all;font-family:inherit;font-size:13px
       <button class="link" id="cancelTok" style="background:none;border:0;cursor:pointer">돌아가기</button>
       <button id="delTok" style="background:none;border:0;cursor:pointer;color:var(--warn)">이 기기에서 출입증 지우기</button>
     </div>
-    <button class="pill light" id="copyTok" hidden style="width:100%;margin-top:12px;padding:12px">📋 사진첩 저장 단축어용 출입증 복사</button>
+
   </section>
 
   <div id="main" hidden>
@@ -435,12 +440,14 @@ $("saveTok").onclick = async () => {
     $("tok").value=""; msg("tokMsg",""); $("tokOld").hidden = true; show(); toast("연결됐어요");
   } catch (e) { token = old; msg("tokMsg", e.message, "err"); }
 };
-$("gear").onclick = () => { $("setup").hidden=false; $("main").hidden=true; $("gear").hidden=true; $("tokOld").hidden=false; $("copyTok").hidden = !token; };
+$("gear").onclick = () => { $("setup").hidden=false; $("main").hidden=true; $("gear").hidden=true; $("tokOld").hidden=false;
+  $("haveTok").hidden = !token; $("setupTitle").textContent = token ? "설정" : "시작하기";
+  $("setupDesc").textContent = token ? "출입증 관리" : "GitHub에서 만든 출입증을 한 번만 붙여넣어 주세요. 이 기기에만 저장돼요."; };
 $("copyTok").onclick = async () => {        // 단축어 '헤더' 값에 그대로 붙여넣을 수 있게 "Bearer 출입증" 형태로 복사
   try { await navigator.clipboard.writeText("Bearer " + token); toast("복사했어요. 단축어의 Authorization 값에 붙여넣으세요"); }
   catch (e) { prompt("아래 글자를 길게 눌러 복사하세요", "Bearer " + token); }
 };
-$("cancelTok").onclick = () => { $("tokOld").hidden = true; $("copyTok").hidden = true; show(); };
+$("cancelTok").onclick = () => { $("tokOld").hidden = true; $("haveTok").hidden = true; show(); };
 $("delTok").onclick = () => { if (!confirm("이 기기에서 출입증을 지울까요?")) return;
   try { localStorage.removeItem(KEY); } catch (e) {} token=""; $("tokOld").hidden=true; show(); };
 
