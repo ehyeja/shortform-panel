@@ -685,8 +685,11 @@ function showIdeas(rel){
   const m = /<!--IDEAS:([A-Za-z0-9+/=]+)-->/.exec(rel.body || ""); if (!m) return;
   let items = [], stat = ""; try { const d = JSON.parse(b64d(m[1])); items = Array.isArray(d) ? d : d.items; stat = d.status || ""; } catch (e) { return; }
   $("ideaBox").hidden = false;
-  $("ideaBox").innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><b style="font-size:14px">${esc(rel.name.replace("[추천] ", ""))} 추천 주제</b><button class="x" id="ideaClose" style="border:0;background:none;color:var(--sub);cursor:pointer">닫기</button></div>`
-    + (stat ? `<div class="mini" style="margin:-4px 0 8px">📡 수집: ${esc(stat)}</div>` : "")
+  const kwLabel = rel.name.replace("[추천] ", "");
+  const wasOpen = $("ideaBox").dataset.open !== "0";
+  $("ideaBox").innerHTML = `<details id="ideaDet" ${wasOpen ? "open" : ""}><summary style="cursor:pointer;display:flex;justify-content:space-between;align-items:center;list-style:none">
+      <b style="font-size:14px">💡 ${esc(kwLabel)} 추천 주제 ${items.length}개</b><span class="mini">펼치기/접기 ▾</span></summary>
+    ${stat ? `<div class="mini" style="margin:6px 0 8px">📡 수집: ${esc(stat)}</div>` : ""}`
     + items.map((x, i) => `<div class="clip" style="flex-direction:column;align-items:stretch;cursor:default;margin-bottom:8px">
         <b style="white-space:normal;font-size:15px">${esc(x.topic)}</b>
         <small style="white-space:normal">${esc(x.why || "")}${x.src === "real" ? " · 📷 실제 자료 추천" : ""}</small>
@@ -694,9 +697,18 @@ function showIdeas(rel){
         ${x.news_total != null ? `<small style="white-space:normal">📰 네이버 뉴스 ${Number(x.news_total).toLocaleString()}건 (뉴스 양 · 검색 관심도와 다른 지표)</small>` : ""}
         ${(x.related || []).length ? `<small style="white-space:normal">🔍 ${x.related.map(esc).join(" · ")}</small>` : ""}
         ${(x.news || []).map(n => `<small style="white-space:normal">📰 <a href="${esc(n.url)}" target="_blank" rel="noopener" style="color:var(--blue)">${esc(n.title || n.url)}</a></small>`).join("")}
-        <button class="pill" data-idea="${i}" style="margin-top:6px;align-self:flex-start">이 주제로 하기</button></div>`).join("");
+        <button class="pill" data-idea="${i}" style="margin-top:6px;align-self:flex-start">이 주제로 하기</button></div>`).join("")
+    + `<button class="pill light" id="moreIdeas" style="width:100%;padding:12px">🔄 마음에 안 들어요 · 다른 주제 5개 추천</button></details>`;
+  $("ideaDet").addEventListener("toggle", e => { $("ideaBox").dataset.open = e.target.open ? "1" : "0"; });
+  $("moreIdeas").onclick = async () => {
+    $("moreIdeas").disabled = true; $("moreIdeas").textContent = "🔄 새 주제 찾는 중… (약 1분)";
+    const prev = (window._prevIdeas || []).concat(items.map(x => x.topic)).slice(-20); window._prevIdeas = prev;
+    try {
+      await dispatch({ topic: kwLabel === "오늘의 인기" ? "" : kwLabel, mode: "ideas", _look: { exclude: b64u(prev.join("|")) } });
+      ideaWait = Date.now(); startPoll(); setTimeout(loadRuns, 4000);
+    } catch (er) { toast(er.message); $("moreIdeas").disabled = false; $("moreIdeas").textContent = "🔄 마음에 안 들어요 · 다른 주제 5개 추천"; }
+  };
   $("ideaBox").onclick = e => {
-    if (e.target.id === "ideaClose") { $("ideaBox").hidden = true; return; }
     const b = e.target.closest("[data-idea]"); if (!b) return;
     const x = items[+b.dataset.idea]; $("topic").value = x.topic;
     if (x.cat && ["live","policy","fact","drama","life"].includes(x.cat)) { setSeg("cat", x.cat); catNote(); }
@@ -801,7 +813,7 @@ function part(body, mark){
 async function loadShips(){
   try {
     const all = (await gh(`/releases?per_page=100`))
-      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));   // 항상 최신 순으로
+      .sort((a, b) => new Date(b.published_at || b.created_at) - new Date(a.published_at || a.created_at));   // 항상 최신 순으로
     const sm = all.find(r => r.tag_name === "voice-samples");
     samples = {}; (sm ? sm.assets : []).forEach(a => samples[a.name.replace(/\.mp3$/, "")] = a.browser_download_url);
     renderVoices();
