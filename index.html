@@ -377,7 +377,7 @@ pre{white-space:pre-wrap;word-break:break-all;font-family:inherit;font-size:13px
 
     <!-- 완성된 영상 -->
     <div class="sec"><h3>완성된 영상 <span class="mini" id="shipCount"></span></h3><a href="https://studio.youtube.com" target="_blank" rel="noopener">유튜브 스튜디오 ↗</a></div>
-    <div class="seg" id="shipTabs" style="margin:0 0 10px"><button aria-pressed="true" data-f="all">전체 (최신순)</button><button aria-pressed="false" data-f="ready">✓ 올릴 것</button><button aria-pressed="false" data-f="review">⏸ 검수 대기</button><button aria-pressed="false" data-f="done">✅ 올림</button></div>
+    <div class="seg" id="shipTabs" style="margin:0 0 10px"><button aria-pressed="true" data-f="all">전체</button><button aria-pressed="false" data-f="ready">✓ 올릴 것</button><button aria-pressed="false" data-f="review">⏸ 검수 대기</button><button aria-pressed="false" data-f="done">✅ 올림</button></div>
     <div id="ships"><section class="card"><div class="empty">불러오는 중…</div></section></div>
 
     <section class="card" style="margin-top:14px">
@@ -398,7 +398,20 @@ pre{white-space:pre-wrap;word-break:break-all;font-family:inherit;font-size:13px
 <div class="sheet" id="sheet" hidden>
   <div class="sheet-in">
     <div class="sheet-top"><h2 id="sheetTitle">대본 수정</h2><button class="icon-btn" id="sheetClose" aria-label="닫기">✕</button></div>
-    <p class="desc">마음에 안 드는 문장만 고치면 돼요. 숫자는 그대로 써도 AI가 자연스럽게 읽어요.</p>
+    <p class="desc">직접 고치거나, 아래 '상세 수정 요청'에 바라는 점을 적으면 AI가 반영해서 다시 만들어요.</p>
+    <div id="reqBox" style="margin:10px 0 14px;padding:12px 14px;border-radius:14px;background:#f4effd;border:1px solid #e1d5fa">
+      <b style="font-size:15px;color:#7c4ddb">✏️ 상세 수정 요청</b>
+      <textarea class="cin" id="eReq" rows="3" style="resize:vertical;margin-top:8px" placeholder="예) 화면을 전부 새로 골라줘 / 말투를 더 친근하게, 반말 섞어서 / 3번 장면은 물 마시는 사람 이미지로 / 더 짧고 빠르게"></textarea>
+      <div class="ideas" id="reqChips" style="flex-wrap:wrap">
+        <button class="idea" data-r="화면(영상·사진)을 전부 새로운 걸로 바꿔줘">🎞 화면 새로</button>
+        <button class="idea" data-r="말투를 더 친근하고 재밌게 바꿔줘">😊 더 친근하게</button>
+        <button class="idea" data-r="말투를 더 차분하고 신뢰감 있게 바꿔줘">🧑‍⚕️ 더 차분하게</button>
+        <button class="idea" data-r="문장을 더 짧고 빠르게, 핵심만">⚡ 더 짧고 빠르게</button>
+        <button class="idea" data-r="중학생도 바로 이해하게 더 쉽게 풀어줘">📚 더 쉽게</button>
+        <button class="idea" data-r="첫 장면 궁금증(훅)을 더 강하게">🎣 첫 장면 더 강하게</button>
+      </div>
+      <label style="display:flex;gap:8px;align-items:center;margin-top:8px;font-size:14px"><input type="checkbox" id="eReqScript" checked> 말(대본)도 요청대로 바꾸기 <span class="mini" style="margin:0">(끄면 화면만 바꿔요)</span></label>
+    </div>
     <div class="field"><label>첫 화면 제목 · 윗줄 (궁금증)</label><input id="eH1"></div>
     <div class="field"><label>첫 화면 제목 · 아랫줄 (결과·숫자)</label><input id="eH2"></div>
     <div class="field"><label>유튜브 제목</label><input id="eTitle"></div>
@@ -1034,6 +1047,7 @@ function openEditor(script, draftTag, title){
   edit = { script: JSON.parse(JSON.stringify(script)), draft: draftTag };
   $("sheetTitle").textContent = title; $("eGo").textContent = draftTag ? "이 대본으로 영상 만들기" : "수정해서 다시 만들기";
   $("eH1").value = script.hook_line1 || ""; $("eH2").value = script.hook_line2 || "";
+  $("eReq").value = ""; $("eReqScript").checked = true;
   $("eTitle").value = script.title || ""; $("eDesc").value = script.description || "";
   drawScenes(edit.script.scenes || []);
   $("eImgBar").hidden = !edit.script.myimg;
@@ -1060,6 +1074,13 @@ $("eScenes").addEventListener("click", async e => {
 });
 $("eAdd").onclick = () => { const list = readScenes(); list.push({ narration:"", subs:[], keyword_en:"" }); drawScenes(list);
   const ts = document.querySelectorAll("#eScenes .n"); ts[ts.length - 1].focus(); };
+$("reqChips").onclick = e => { const b = e.target.closest("[data-r]"); if (!b) return;
+  const t = $("eReq"); t.value = (t.value.trim() ? t.value.trim() + " / " : "") + b.dataset.r;
+  if (b.dataset.r.startsWith("화면")) $("eReqScript").checked = /말투|문장|쉽게|훅/.test(t.value); };
+function reqLook(){
+  const t = $("eReq").value.trim();
+  return t ? { revise: b64u(t.slice(0, 500)), revise_script: $("eReqScript").checked ? "1" : "" } : {};
+}
 $("eGo").onclick = async () => {
   const scenes = readScenes();
   if (scenes.length < 2) return toast("장면이 2개 이상 있어야 해요");
@@ -1071,11 +1092,11 @@ $("eGo").onclick = async () => {
     if (sc.myimg) {
       const imgs = [...new Set(scenes.map(x => x.img).filter(Boolean))];
       if (!imgs.length && !confirm("고른 이미지가 없어요. 무료 영상으로만 만들까요?")) { $("eGo").disabled = false; $("eGo").textContent = "이 대본으로 영상 만들기"; return; }
-      await dispatch({ topic: sc.topic || sc.title, mode: "full", script: b64e(JSON.stringify(sc)), draft: edit.draft || "", media: imgs.join("|"), _look: { src: "myimg" } });
+      await dispatch({ topic: sc.topic || sc.title, mode: "full", script: b64e(JSON.stringify(sc)), draft: edit.draft || "", media: imgs.join("|"), _look: { src: "myimg", ...reqLook() } });
       closeEditor(); toast("주문 완료! 8~10분 뒤 도착해요"); loadShips(); setTimeout(loadRuns, 4000); startPoll(); $("eGo").disabled = false; return;
     }
     await dispatch({ topic: sc.topic || sc.title, mode: ownEdit ? "own" : "full", script: b64e(JSON.stringify(sc)), draft: edit.draft || "",
-      ...(ownEdit ? { media: sc.media, credit: sc.credit || "", _look: { audio: sc.audio || "ai_mix", fill: sc.fill || "stock" } } : {}) });
+      ...(ownEdit ? { media: sc.media, credit: sc.credit || "", _look: { audio: sc.audio || "ai_mix", fill: sc.fill || "stock", ...reqLook() } } : { _look: { src: pick("src") === "real" ? "real" : "", ...reqLook() } }) });
     if (edit.draft) { let l = []; try { l = JSON.parse(localStorage.getItem("sff_hidden") || "[]"); } catch (er) {} l.push(edit.draft); try { localStorage.setItem("sff_hidden", JSON.stringify(l)); } catch (er) {} }
     closeEditor(); toast("주문 완료! 8~10분 뒤 도착해요"); loadShips(); setTimeout(loadRuns, 4000); startPoll();
   } catch (err) { toast(err.message); }
