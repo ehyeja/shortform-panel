@@ -399,6 +399,11 @@ pre{white-space:pre-wrap;word-break:break-all;font-family:inherit;font-size:13px
   <div class="sheet-in">
     <div class="sheet-top"><h2 id="sheetTitle">대본 수정</h2><button class="icon-btn" id="sheetClose" aria-label="닫기">✕</button></div>
     <p class="desc">직접 고치거나, 아래 '상세 수정 요청'에 바라는 점을 적으면 AI가 반영해서 다시 만들어요.</p>
+    <details id="eFacts" hidden open style="margin:6px 0 10px;padding:12px 14px;border-radius:14px;background:#eaf7ef;border:1px solid #cfeedd">
+      <summary style="cursor:pointer;font-weight:700;color:#1a8f4a">🔎 먼저 확인: 조사한 사실과 출처</summary>
+      <pre id="eFactsTxt" style="white-space:pre-wrap;font-size:13px;line-height:1.6;margin:8px 0 0;max-height:320px;overflow:auto"></pre>
+      <div class="mini">대본의 숫자·내용이 위 사실과 맞는지 보고, 이상하면 고치거나 아래 수정 요청에 적어주세요.</div>
+    </details>
     <div id="reqBox" style="margin:10px 0 14px;padding:12px 14px;border-radius:14px;background:#f4effd;border:1px solid #e1d5fa">
       <b style="font-size:15px;color:#7c4ddb">✏️ 상세 수정 요청</b>
       <textarea class="cin" id="eReq" rows="3" style="resize:vertical;margin-top:8px" placeholder="예) 화면을 전부 새로 골라줘 / 말투를 더 친근하게, 반말 섞어서 / 3번 장면은 물 마시는 사람 이미지로 / 더 짧고 빠르게"></textarea>
@@ -941,10 +946,13 @@ async function loadShips(){
       const av = ai >= 0 ? b.slice(ai).trim() : "";
       const rv = (/⏸ 검수 대기: (.*)/.exec(b) || [])[1] || "";
       const rs = (/🔬 자료 조사: (.*)/.exec(b) || [])[1] || "";
+      const cb = (/🎯 제목·첫 화면 후보\n([\s\S]*?)(\n\n|$)/.exec(b) || [])[1] || "";
+      const cands = cb.split("\n").map(l => /^- 제목: (.*)/.exec(l)).filter(Boolean).map(m => m[1]);
+      const hooks = cb.split("\n").map(l => /^- 첫 화면: (.*)/.exec(l)).filter(Boolean).map(m => m[1]);
       const pol = ((b.split("\n").find(l => l.startsWith("✅")) || "").split("/")[0] || "").replace(/✅|정책 검사:/g, "").trim();
       const om = /🎨 독창성 점수: (\d+)점/.exec(b);
       return { title: (part(b,"📌") || r.name).replace(/^\[검수 대기\] /, ""), desc: part(b,"📝"), pin: part(b,"💬"), pol, warn: part(b,"⚠️"), asset:(r.assets||[])[0], date:r.created_at, script:hidden(r.body), orig: om ? +om[1] : null, id:r.id, tag:r.tag_name, fr, av, rv, rs,
-        raw: r.body || "", up: ((/<!--UPLOADED:([^>]*)-->/.exec(r.body || "")) || [])[1] || "" }; });
+        raw: r.body || "", cands, hooks, up: ((/<!--UPLOADED:([^>]*)-->/.exec(r.body || "")) || [])[1] || "" }; });
     if (!ships.length) { $("ships").innerHTML = `<section class="card"><div class="empty">${shipFilter === "all" ? "완성된 영상이 여기에 쌓여요." : "해당하는 영상이 없어요."}</div></section>`; $("shipCount").textContent = `총 ${shipTotal}개 · 올림 ${$("shipCount").dataset.done || 0}개`; return; }
     $("ships").innerHTML = ships.map((s, i) => `
       <section class="card vid" ${s.up ? 'style="opacity:.72"' : ""}>
@@ -966,6 +974,9 @@ async function loadShips(){
         ${s.warn ? `<details><summary>⚠️ 고칠 점 보기</summary><pre>${esc(s.warn)}</pre></details>` : ""}
         ${s.rs ? `<div class="mini" style="color:${s.rs.startsWith("완료") ? "var(--green, #1a8f4a)" : "#c26a00"};font-weight:600">🔬 자료 조사: ${esc(s.rs)}</div>` : ""}
         ${s.rv ? `<div class="hint">⏸ 검수 대기 이유: ${esc(s.rv)} · 확인 후 직접 판단해서 올려주세요</div>` : ""}
+        ${s.cands.length ? `<details><summary>🎯 제목 후보 ${s.cands.length}개 (눌러서 복사)</summary>
+          ${s.cands.map(t => `<button class="pill light" data-cpt="${esc(t)}" style="display:block;width:100%;text-align:left;margin:6px 0;white-space:normal">📋 ${esc(t)}</button>`).join("")}
+          ${s.hooks.length ? `<div class="mini" style="margin-top:6px">첫 화면 문구 후보: ${s.hooks.map(esc).join(" · ")}</div>` : ""}</details>` : ""}
         ${s.fr ? `<details><summary>🔎 사실 검증·출처 보기</summary><pre>${esc(s.fr)}</pre></details>` : ""}
         ${s.av ? `<details><summary>🖼 시각 자료·이용 조건 보기</summary><pre>${esc(s.av)}</pre></details>` : ""}
         <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
@@ -987,6 +998,8 @@ $("shipTabs").onclick = e => { const b = e.target.closest("[data-f]"); if (!b) r
   document.querySelectorAll("#shipTabs button").forEach(x => x.setAttribute("aria-pressed", x === b ? "true" : "false")); loadShips(); };
 $("ships").addEventListener("click", async e => {
   if (e.target.id === "shipMore") { shipShow += 10; loadShips(); return; }
+  const cpt = e.target.closest("[data-cpt]");
+  if (cpt) { try { await navigator.clipboard.writeText(cpt.dataset.cpt); toast("제목을 복사했어요"); } catch (er) { prompt("길게 눌러 복사하세요", cpt.dataset.cpt); } return; }
   const up = e.target.closest("[data-up]");
   if (up) {                                   // 업로드 완료 표시를 GitHub에 저장 (휴대폰·컴퓨터 어디서 봐도 같게)
     const s = ships[+up.dataset.up]; up.disabled = true;
@@ -1048,6 +1061,7 @@ function openEditor(script, draftTag, title){
   $("sheetTitle").textContent = title; $("eGo").textContent = draftTag ? "이 대본으로 영상 만들기" : "수정해서 다시 만들기";
   $("eH1").value = script.hook_line1 || ""; $("eH2").value = script.hook_line2 || "";
   $("eReq").value = ""; $("eReqScript").checked = true;
+  $("eFacts").hidden = !script.fact_report_saved; $("eFactsTxt").textContent = script.fact_report_saved || "";
   $("eTitle").value = script.title || ""; $("eDesc").value = script.description || "";
   drawScenes(edit.script.scenes || []);
   $("eImgBar").hidden = !edit.script.myimg;
