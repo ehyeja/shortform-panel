@@ -520,18 +520,43 @@ function updPrev(){
   const hk = {"작게":"5px","보통":"7px","크게":"9px"}[pick("hook")];
   document.querySelectorAll("#phone .h").forEach(e => e.style.height = hk);
 }
+// 비공개 저장소 파일은 그냥 링크로 열면 'Not Found' → 출입증으로 받아서 저장·재생
+async function fetchAsset(apiUrl){
+  const r = await fetch(apiUrl, { headers: { Authorization: "Bearer " + token, Accept: "application/octet-stream" } });
+  if (!r.ok) throw new Error("파일을 받지 못했어요 (" + r.status + ")");
+  return await r.blob();
+}
+async function downloadAsset(asset, btn){
+  const old = btn ? btn.innerHTML : "";
+  if (btn) { btn.style.pointerEvents = "none"; btn.innerHTML = "받는 중…"; }
+  try {
+    const blob = await fetchAsset(asset.url);
+    const u = URL.createObjectURL(blob), a = document.createElement("a");
+    a.href = u; a.download = asset.name || "short.mp4"; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(u), 60000); toast("다운로드했어요");
+  } catch (e) { toast(e.message + " · GitHub에 로그인된 창에서 다시 열어볼게요"); window.open(asset.browser_download_url, "_blank"); }
+  if (btn) { btn.style.pointerEvents = ""; btn.innerHTML = old; }
+}
+let sampleAudio = null;
+async function playSample(apiUrl, el){
+  try { el.textContent = "…"; const blob = await fetchAsset(apiUrl);
+    if (sampleAudio) sampleAudio.pause(); sampleAudio = new Audio(URL.createObjectURL(blob)); await sampleAudio.play(); }
+  catch (e) { toast(e.message); }
+  el.textContent = "▶";
+}
 function renderVoices(){
   const cur = prefs.voice || "여성 밝음";
   $("voices").innerHTML = VOICES.map(([k, id, d]) => {
     const a = samples[id];
-    return `<div class="voice" role="button" tabindex="0" data-v="${k}" aria-pressed="${k === cur}"><div><b>${k}</b><span>${d}</span></div>${a ? `<a class="play" href="${esc(a)}" target="_blank" rel="noopener" aria-label="${k} 듣기">▶</a>` : ""}</div>`;
+    return `<div class="voice" role="button" tabindex="0" data-v="${k}" aria-pressed="${k === cur}"><div><b>${k}</b><span>${d}</span></div>${a ? `<button class="play" data-snd="${esc(a)}" aria-label="${k} 듣기" style="border:0;cursor:pointer">▶</button>` : ""}</div>`;
   }).join("");
   $("sampleNote").innerHTML = Object.keys(samples).length
-    ? `<span>▶를 누르면 새 창에서 샘플이 재생돼요</span>`
+    ? `<span>▶를 누르면 샘플이 재생돼요</span>`
     : `<span>샘플을 한 번 만들어두면 미리 들어볼 수 있어요 (약 3분)</span><button id="mkSample">샘플 만들기</button>`;
 }
 $("voices").addEventListener("click", e => {
-  if (e.target.closest(".play")) return;
+  const p = e.target.closest(".play");
+  if (p) { e.stopPropagation(); playSample(p.dataset.snd, p); return; }
   const v = e.target.closest(".voice"); if (!v) return;
   document.querySelectorAll("#voices .voice").forEach(x => x.setAttribute("aria-pressed", x === v ? "true" : "false")); savePrefs();
 });
@@ -910,7 +935,7 @@ async function loadShips(){
     all.forEach(r => { r._t = relTime(r); r.created_at = new Date(r._t).toISOString(); });
     all.sort((a, b) => b._t - a._t);              // 항상 최근에 만든 것이 맨 위
     const sm = all.find(r => r.tag_name === "voice-samples");
-    samples = {}; (sm ? sm.assets : []).forEach(a => samples[a.name.replace(/\.mp3$/, "")] = a.browser_download_url);
+    samples = {}; (sm ? sm.assets : []).forEach(a => samples[a.name.replace(/\.mp3$/, "")] = a.url);
     renderVoices();
     let hiddenDrafts = []; try { hiddenDrafts = JSON.parse(localStorage.getItem("sff_hidden") || "[]"); } catch (e) {}
     showIdeas(all.find(r => r.tag_name.startsWith("ideas-")));
@@ -965,7 +990,7 @@ async function loadShips(){
         </div>
         <div class="acts">
           ${s.asset ? (IOS ? `<a class="act main" href="shortcuts://run-shortcut?name=${encodeURIComponent("숏폼저장")}&input=text&text=${encodeURIComponent(s.asset.url)}">${ICON.down}사진첩</a>`
-                           : `<a class="act main" href="${esc(s.asset.browser_download_url)}" target="_blank" rel="noopener">${ICON.down}받기</a>`) : `<span></span>`}
+                           : `<a class="act main" href="#" data-dl="${i}">${ICON.down}받기</a>`) : `<span></span>`}
           <button class="act" data-c="title" data-i="${i}">${ICON.copy}제목</button>
           <button class="act" data-c="desc" data-i="${i}">${ICON.text}설명</button>
           <button class="act" data-c="pin" data-i="${i}">${ICON.chat}댓글</button>
@@ -982,7 +1007,7 @@ async function loadShips(){
         <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
           ${s.up ? `<button class="pill light" data-up="${i}">↩ 업로드 완료 취소</button>` : `<button class="pill" data-up="${i}" style="background:#1a8f4a">✅ 업로드 완료</button>`}
           <button class="x" data-rm="${i}" style="border:0;background:none;color:var(--sub);font-size:12px;cursor:pointer">🗑 이 영상 삭제</button></div>
-        ${IOS && s.asset ? `<a class="mini" style="display:block;text-align:right;color:var(--sub)" href="${esc(s.asset.browser_download_url)}" target="_blank" rel="noopener">파일로 받기</a>` : ""}
+        ${IOS && s.asset ? `<a class="mini" style="display:block;text-align:right;color:var(--sub)" href="#" data-dl="${i}">파일로 받기</a>` : ""}
       </section>`).join("");
     const shown = ships.length, more = shipFilter === "all" ? shipTotal - shown : 0;
     $("shipCount").textContent = `총 ${shipTotal}개 · 올림 ${$("shipCount").dataset.done || 0}개`;
@@ -998,6 +1023,8 @@ $("shipTabs").onclick = e => { const b = e.target.closest("[data-f]"); if (!b) r
   document.querySelectorAll("#shipTabs button").forEach(x => x.setAttribute("aria-pressed", x === b ? "true" : "false")); loadShips(); };
 $("ships").addEventListener("click", async e => {
   if (e.target.id === "shipMore") { shipShow += 10; loadShips(); return; }
+  const dl = e.target.closest("[data-dl]");
+  if (dl) { e.preventDefault(); const s = ships[+dl.dataset.dl]; downloadAsset(s.asset, dl); return; }
   const cpt = e.target.closest("[data-cpt]");
   if (cpt) { try { await navigator.clipboard.writeText(cpt.dataset.cpt); toast("제목을 복사했어요"); } catch (er) { prompt("길게 눌러 복사하세요", cpt.dataset.cpt); } return; }
   const up = e.target.closest("[data-up]");
