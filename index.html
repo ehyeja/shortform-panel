@@ -243,6 +243,9 @@ pre{white-space:pre-wrap;word-break:break-all;font-family:inherit;font-size:13px
       <div class="opt" style="margin-top:14px"><label style="font-size:13px;font-weight:700;color:var(--sub);display:block;margin-bottom:8px">분야</label>
         <div class="seg" data-name="cat" style="flex-wrap:wrap"><button aria-pressed="true" data-v="live">실시간</button><button aria-pressed="false" data-v="policy">정책·법</button><button aria-pressed="false" data-v="fact">연구</button><button aria-pressed="false" data-v="health">건강</button><button aria-pressed="false" data-v="fitness">운동</button><button aria-pressed="false" data-v="ent">연예</button><button aria-pressed="false" data-v="drama">드라마</button><button aria-pressed="false" data-v="life">생활</button></div>
         <div class="mini" id="catNote"></div></div>
+      <div class="opt" style="margin-top:12px"><label style="font-size:13px;font-weight:700;color:var(--sub);display:block;margin-bottom:8px">주 시청자 (말투·예시·추천 주제에 반영)</label>
+        <div class="seg" data-name="aud"><button aria-pressed="true" data-v="mid">40~60대+</button><button aria-pressed="false" data-v="all">전체</button><button aria-pressed="false" data-v="young">10~30대</button></div>
+        <div class="mini">유튜브 분석 기준 지금 채널은 45세 이상이 약 60%, 여성이 약 63%예요.</div></div>
       <div style="display:flex;gap:8px;margin-top:10px">
         <button class="idea" id="askIdeas" style="flex:1;color:var(--accent);border-color:var(--accent)">💡 추천 주제 5개 받기</button>
         <button class="idea" id="moreIdeasTop" style="flex:1">🔄 다시 뽑기</button>
@@ -377,6 +380,11 @@ pre{white-space:pre-wrap;word-break:break-all;font-family:inherit;font-size:13px
 
     <!-- 완성된 영상 -->
     <div class="sec"><h3>완성된 영상 <span class="mini" id="shipCount"></span></h3><a href="https://studio.youtube.com" target="_blank" rel="noopener">유튜브 스튜디오 ↗</a></div>
+    <div id="pcBar" hidden style="display:flex;gap:8px;margin:0 0 10px;flex-wrap:wrap">
+      <button class="pill light" id="pickDir" style="flex:1">📁 저장 폴더 정하기</button>
+      <button class="pill light" id="backfill" style="flex:1">🖥 예전 영상도 바로 받게</button>
+    </div>
+    <div class="mini" id="dirNote" hidden style="margin:-4px 0 10px"></div>
     <div class="seg" id="shipTabs" style="margin:0 0 10px"><button aria-pressed="true" data-f="all">전체</button><button aria-pressed="false" data-f="ready">✓ 올릴 것</button><button aria-pressed="false" data-f="review">⏸ 검수 대기</button><button aria-pressed="false" data-f="done">✅ 올림</button></div>
     <div id="ships"><section class="card"><div class="empty">불러오는 중…</div></section></div>
 
@@ -507,7 +515,7 @@ document.querySelectorAll(".seg").forEach(seg => seg.onclick = e => {
 });
 const pick = name => document.querySelector(`.seg[data-name="${name}"] [aria-pressed="true"]`).dataset.v;
 function savePrefs(){
-  prefs = { len:pick("len"), spd:pick("spd"), size:pick("size"), pos:pick("pos"), hook:pick("hook"), src:pick("src"), ltype:pick("ltype"), otype:pick("otype"), style:pick("style"), rights:pick("rights"), cat:pick("cat"), aimax:pick("aimax"), fact:$("factTg").getAttribute("aria-checked"), font:curFont(), audio:pick("audio"), fill:pick("fill"),
+  prefs = { len:pick("len"), spd:pick("spd"), size:pick("size"), pos:pick("pos"), hook:pick("hook"), src:pick("src"), ltype:pick("ltype"), otype:pick("otype"), style:pick("style"), rights:pick("rights"), cat:pick("cat"), aimax:pick("aimax"), aud:pick("aud"), fact:$("factTg").getAttribute("aria-checked"), font:curFont(), audio:pick("audio"), fill:pick("fill"),
             voice:curVoice(), review:$("reviewTg").getAttribute("aria-checked")==="true" };
   try { localStorage.setItem(SET, JSON.stringify(prefs)); } catch (e) {}
   updPrev(); updSrc();
@@ -526,16 +534,67 @@ async function fetchAsset(apiUrl){
   if (!r.ok) throw new Error("파일을 받지 못했어요 (" + r.status + ")");
   return await r.blob();
 }
-async function downloadAsset(asset, btn){
+// 📁 PC 저장 폴더 (크롬·엣지): 한 번 정하면 받기 누를 때마다 그 폴더에 바로 저장
+let dirHandle = null;
+const idb = () => new Promise((ok, no) => { const r = indexedDB.open("sff", 1); r.onupgradeneeded = () => r.result.createObjectStore("kv"); r.onsuccess = () => ok(r.result); r.onerror = no; });
+async function kvSet(k, v){ const d = await idb(); return new Promise(ok => { const t = d.transaction("kv", "readwrite"); t.objectStore("kv").put(v, k); t.oncomplete = ok; }); }
+async function kvGet(k){ const d = await idb(); return new Promise(ok => { const q = d.transaction("kv").objectStore("kv").get(k); q.onsuccess = () => ok(q.result); q.onerror = () => ok(null); }); }
+if (!IOS) {
+  $("pcBar").hidden = false; $("pcBar").style.display = "flex";
+  if (!window.showDirectoryPicker) $("pickDir").hidden = true;
+  kvGet("dir").then(hd => { if (hd) { dirHandle = hd; $("dirNote").hidden = false; $("dirNote").textContent = `📁 저장 폴더: ${hd.name} (받기를 누르면 여기에 바로 저장돼요)`; $("pickDir").textContent = "📁 저장 폴더 바꾸기"; } }).catch(() => {});
+}
+$("pickDir").onclick = async () => {
+  try { dirHandle = await window.showDirectoryPicker({ mode: "readwrite", id: "shorts" }); await kvSet("dir", dirHandle);
+    $("dirNote").hidden = false; $("dirNote").textContent = `📁 저장 폴더: ${dirHandle.name} (받기를 누르면 여기에 바로 저장돼요)`; $("pickDir").textContent = "📁 저장 폴더 바꾸기"; toast("저장 폴더를 정했어요"); }
+  catch (e) { if (e.name !== "AbortError") toast("폴더를 정하지 못했어요"); }
+};
+$("backfill").onclick = async () => {
+  if (!confirm("예전 영상들도 PC에서 바로 받을 수 있게 준비할까요? (영상 수에 따라 5~15분, 한 번만 하면 돼요)")) return;
+  try { await dispatch({ topic: "예전 영상 PC 받기 준비", mode: "backfill" }); toast("준비를 시작했어요. 끝나면 예전 영상도 바로 받아져요"); setTimeout(loadRuns, 4000); startPoll(); }
+  catch (e) { toast(e.message); }
+};
+async function saveBlob(blob, name){
+  if (dirHandle) {
+    try {
+      if ((await dirHandle.queryPermission({ mode: "readwrite" })) !== "granted" && (await dirHandle.requestPermission({ mode: "readwrite" })) !== "granted") throw new Error("권한 없음");
+      const f = await dirHandle.getFileHandle(name, { create: true }); const w = await f.createWritable(); await w.write(blob); await w.close();
+      toast(`📁 ${dirHandle.name} 폴더에 저장했어요`); return;
+    } catch (e) { /* 폴더 저장이 안 되면 일반 다운로드로 */ }
+  }
+  const u = URL.createObjectURL(blob), a = document.createElement("a");
+  a.href = u; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(u), 60000); toast("다운로드 폴더에 저장했어요");
+}
+async function fetchBlob(sha){          // 저장소에 함께 저장한 영상 (브라우저에서 바로 받을 수 있는 방식)
+  const r = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/git/blobs/${sha}`,
+    { headers: { Authorization: "Bearer " + token, Accept: "application/vnd.github.raw" } });
+  if (!r.ok) throw new Error("파일을 받지 못했어요 (" + r.status + ")");
+  return await r.blob();
+}
+async function downloadAsset(asset, btn, sha){
   const old = btn ? btn.innerHTML : "";
   if (btn) { btn.style.pointerEvents = "none"; btn.innerHTML = "받는 중…"; }
   try {
-    const blob = await fetchAsset(asset.url);
-    const u = URL.createObjectURL(blob), a = document.createElement("a");
-    a.href = u; a.download = asset.name || "short.mp4"; document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(() => URL.revokeObjectURL(u), 60000); toast("다운로드했어요");
-  } catch (e) { toast(e.message + " · GitHub에 로그인된 창에서 다시 열어볼게요"); window.open(asset.browser_download_url, "_blank"); }
+    const blob = sha ? await fetchBlob(sha) : await fetchAsset(asset.url);
+    await saveBlob(blob, asset.name || "short.mp4");
+  } catch (e) {
+    // 예전 영상(사본 없음)은 GitHub 로그인된 브라우저에서만 받을 수 있어요 → 링크로 안내
+    showDlHelp(asset);
+  }
   if (btn) { btn.style.pointerEvents = ""; btn.innerHTML = old; }
+}
+function showDlHelp(asset){
+  const d = document.createElement("div");
+  d.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:99;display:flex;align-items:center;justify-content:center;padding:20px";
+  d.innerHTML = `<div style="background:var(--card);border-radius:16px;padding:20px;max-width:420px;line-height:1.6">
+    <b style="font-size:16px">이 영상은 GitHub 로그인이 필요해요</b>
+    <p class="mini" style="margin:8px 0 14px">이 기능이 생기기 전에 만든 영상이에요. 위의 <b>🖥 예전 영상도 바로 받게</b>를 한 번 누르면 예전 영상도 바로 받아져요. 지금 바로 받으려면 <b>GitHub에 로그인된 브라우저</b>에서 아래 버튼을 누르세요.</p>
+    <a class="primary" style="display:block;text-align:center;text-decoration:none;margin-bottom:8px" href="${esc(asset.browser_download_url)}" target="_blank" rel="noopener">GitHub로 받기 (로그인돼 있으면 바로 받아져요)</a>
+    <a class="pill light" style="display:block;text-align:center;text-decoration:none" href="https://github.com/login" target="_blank" rel="noopener">GitHub 로그인하기</a>
+    <button class="x" style="display:block;margin:12px auto 0;border:0;background:none;color:var(--sub);cursor:pointer">닫기</button></div>`;
+  d.onclick = e => { if (e.target === d || e.target.closest("button.x")) d.remove(); };
+  document.body.appendChild(d);
 }
 let sampleAudio = null;
 async function playSample(apiUrl, el){
@@ -570,7 +629,7 @@ $("reviewSw").onclick = () => { const t = $("reviewTg"); t.setAttribute("aria-ch
 // 저장된 설정 불러오기
 if (prefs.len) setSeg("len", prefs.len); if (prefs.spd) setSeg("spd", prefs.spd);
 if (prefs.size) setSeg("size", prefs.size); if (prefs.pos) setSeg("pos", prefs.pos);
-["hook","src","audio","fill","ltype","otype","style","rights","cat","aimax"].forEach(k => { if (prefs[k]) setSeg(k, prefs[k]); });
+["hook","src","audio","fill","ltype","otype","style","rights","cat","aimax","aud"].forEach(k => { if (prefs[k]) setSeg(k, prefs[k]); });
 $("reviewTg").setAttribute("aria-checked", prefs.review ? "true" : "false");
 if (prefs.fact) $("factTg").setAttribute("aria-checked", prefs.fact);
 $("factSw").onclick = () => { const t = $("factTg"); t.setAttribute("aria-checked", t.getAttribute("aria-checked") === "true" ? "false" : "true"); savePrefs(); };
@@ -587,7 +646,7 @@ renderVoices(); updPrev();
 function look(extra){
   const o = { sub_size:pick("size"), sub_pos:pick("pos"), hook_size:pick("hook"), audio:pick("audio"), fill:pick("fill"),
               style:pick("style"), rights:pick("rights"), src: ["real", "myimg"].includes(pick("src")) ? pick("src") : "",
-              cat:pick("cat"), fact: $("factTg").getAttribute("aria-checked") === "true" ? "1" : "", font: curFont(), ai_max: pick("aimax") || "4",
+              cat:pick("cat"), aud: pick("aud") || "mid", fact: $("factTg").getAttribute("aria-checked") === "true" ? "1" : "", font: curFont(), ai_max: pick("aimax") || "4",
               brief: $("brief").value.trim() ? b64u($("brief").value.trim().slice(0, 500)) : "", ...(extra||{}) };
   return Object.entries(o).map(([k, v]) => `${k}=${v}`).join(";");
 }
@@ -831,7 +890,7 @@ $("moreIdeasTop").onclick = async () => {
 
 // 설정 칸을 종류별 색으로 구분
 (function colorGroups(){
-  const map = [[/^분야/, "blue"], [/화면에 쓸 영상|AI 이미지|만들기 방식|영상 종류|이 영상은|원본 소리|빈 곳/, "orange"],
+  const map = [[/^분야|주 시청자/, "blue"], [/화면에 쓸 영상|AI 이미지|만들기 방식|영상 종류|이 영상은|원본 소리|빈 곳/, "orange"],
                [/길이|목소리|말 속도/, "teal"], [/폰트|제목 크기|자막 크기|자막 위치/, "yellow"], [/해석 스타일|리뷰 관점/, "pink"]];
   document.querySelectorAll(".opt").forEach(o => {
     const l = o.querySelector(":scope > label"); if (!l) return;
@@ -977,7 +1036,7 @@ async function loadShips(){
       const pol = ((b.split("\n").find(l => l.startsWith("✅")) || "").split("/")[0] || "").replace(/✅|정책 검사:/g, "").trim();
       const om = /🎨 독창성 점수: (\d+)점/.exec(b);
       return { title: (part(b,"📌") || r.name).replace(/^\[검수 대기\] /, ""), desc: part(b,"📝"), pin: part(b,"💬"), pol, warn: part(b,"⚠️"), asset:(r.assets||[])[0], date:r.created_at, script:hidden(r.body), orig: om ? +om[1] : null, id:r.id, tag:r.tag_name, fr, av, rv, rs,
-        raw: r.body || "", cands, hooks, up: ((/<!--UPLOADED:([^>]*)-->/.exec(r.body || "")) || [])[1] || "" }; });
+        raw: r.body || "", cands, hooks, blob: ((/<!--BLOB:([0-9a-f]{40})-->/.exec(r.body || "")) || [])[1] || "", up: ((/<!--UPLOADED:([^>]*)-->/.exec(r.body || "")) || [])[1] || "" }; });
     if (!ships.length) { $("ships").innerHTML = `<section class="card"><div class="empty">${shipFilter === "all" ? "완성된 영상이 여기에 쌓여요." : "해당하는 영상이 없어요."}</div></section>`; $("shipCount").textContent = `총 ${shipTotal}개 · 올림 ${$("shipCount").dataset.done || 0}개`; return; }
     $("ships").innerHTML = ships.map((s, i) => `
       <section class="card vid" ${s.up ? 'style="opacity:.72"' : ""}>
@@ -1016,6 +1075,7 @@ async function loadShips(){
 }
 async function removeRelease(id, tag){
   await gh(`/releases/${id}`, { method:"DELETE" });
+  if (/^short-/.test(tag)) { try { await gh(`/git/refs/heads/video/${encodeURIComponent(tag)}`, { method:"DELETE" }); } catch (e) {} }
   try { await gh(`/git/refs/tags/${encodeURIComponent(tag)}`, { method:"DELETE" }); } catch (e) {}
 }
 $("shipTabs").onclick = e => { const b = e.target.closest("[data-f]"); if (!b) return;
@@ -1024,7 +1084,7 @@ $("shipTabs").onclick = e => { const b = e.target.closest("[data-f]"); if (!b) r
 $("ships").addEventListener("click", async e => {
   if (e.target.id === "shipMore") { shipShow += 10; loadShips(); return; }
   const dl = e.target.closest("[data-dl]");
-  if (dl) { e.preventDefault(); const s = ships[+dl.dataset.dl]; downloadAsset(s.asset, dl); return; }
+  if (dl) { e.preventDefault(); const s = ships[+dl.dataset.dl]; downloadAsset(s.asset, dl, s.blob); return; }
   const cpt = e.target.closest("[data-cpt]");
   if (cpt) { try { await navigator.clipboard.writeText(cpt.dataset.cpt); toast("제목을 복사했어요"); } catch (er) { prompt("길게 눌러 복사하세요", cpt.dataset.cpt); } return; }
   const up = e.target.closest("[data-up]");
