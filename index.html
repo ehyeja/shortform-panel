@@ -283,6 +283,13 @@ pre{white-space:pre-wrap;word-break:break-all;font-family:inherit;font-size:13px
             ② <b>확인·수정</b>을 열고 장면마다 <b>문구 복사</b> → 제미나이·ChatGPT 앱에 붙여넣어 이미지 만들기 → 사진첩에 저장<br>
             ③ 같은 화면에서 <b>＋ 이미지 올리기</b>로 올리고, 장면마다 쓸 이미지 고르기<br>
             ④ <b>이 대본으로 영상 만들기</b> → 이미지 + 목소리 + 자막으로 완성 (이미지 없는 장면은 무료 영상으로 채워요)</div>
+          <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--line)">
+            <b style="font-size:14px">📱 내 폰 사진 바로 쓰기 (선택)</b>
+            <div class="mini" style="margin:4px 0 8px">이미 갖고 있는 사진을 올리고 고르면, AI가 사진을 직접 보고 어울리는 장면에 넣어 대본을 써요.</div>
+            <label class="drop" style="margin:0"><input type="file" id="myPhotoFile" accept="image/*" multiple hidden><b>＋ 사진첩에서 사진 올리기</b><span id="myPhotoMsg">여러 장 한 번에 골라도 돼요</span></label>
+            <div id="myPhotos" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px"></div>
+            <div class="mini" id="myPhotoSel"></div>
+          </div>
         </div>
         <div class="mini" id="realNote" hidden>실화·사건·우주·연구 주제에 좋아요. <b>한국 공공 자료</b>(정책브리핑·국가기록원·e영상역사관 등 <b>공공누리 제1유형</b>)와 위키미디어 커먼즈·NASA의 <b>자유 이용 실제 사진·기록 영상</b>을 찾아 쓰고, 출처는 설명란에 자동으로 적어요.</div></div>
       <div class="src-box" id="longBox" hidden>
@@ -342,6 +349,9 @@ pre{white-space:pre-wrap;word-break:break-all;font-family:inherit;font-size:13px
           <div class="seg" data-name="spd"><button aria-pressed="false" data-v="10~20대 (빠르게)">빠르게</button><button aria-pressed="true" data-v="30대 (보통)">보통</button><button aria-pressed="false" data-v="40대 이상 (느리게)">느리게</button></div></div>
         <div class="opt"><label>자막·제목 폰트 (모두 상업적 이용 무료)</label>
           <div class="fonts" id="fonts"><button class="fnt" data-font="" aria-pressed="false" style="font-family:&quot;Pretendard&quot;,sans-serif;font-weight:900"><div class="s"><i>실화</i> 바탕!?</div><small>기본</small></button><button class="fnt" data-font="blackhansans" aria-pressed="false" style="font-family:&quot;Black Han Sans&quot;,sans-serif;font-weight:400"><div class="s"><i>실화</i> 바탕!?</div><small>블랙한산스</small></button><button class="fnt" data-font="gmarket" aria-pressed="false" style="font-family:&quot;Gmarket Sans&quot;,sans-serif;font-weight:700"><div class="s"><i>실화</i> 바탕!?</div><small>G마켓 산스</small></button><button class="fnt" data-font="pretendard" aria-pressed="false" style="font-family:&quot;Pretendard&quot;,sans-serif;font-weight:900"><div class="s"><i>실화</i> 바탕!?</div><small>프리텐다드</small></button><button class="fnt" data-font="paperlogy" aria-pressed="false" style="font-family:&quot;Paperlogy&quot;,sans-serif;font-weight:900"><div class="s"><i>실화</i> 바탕!?</div><small>페이퍼로지</small></button><button class="fnt" data-font="jalnan" aria-pressed="false" style="font-family:&quot;Jalnan Gothic&quot;,sans-serif;font-weight:400"><div class="s"><i>실화</i> 바탕!?</div><small>잘난체</small></button><button class="fnt" data-font="scdream" aria-pressed="false" style="font-family:&quot;S-Core Dream&quot;,sans-serif;font-weight:900"><div class="s"><i>실화</i> 바탕!?</div><small>에스코어 드림</small></button><button class="fnt" data-font="tmon" aria-pressed="false" style="font-family:&quot;Tmon Monsori&quot;,sans-serif;font-weight:400"><div class="s"><i>실화</i> 바탕!?</div><small>티몬 몬소리</small></button><button class="fnt" data-font="ssurround" aria-pressed="false" style="font-family:&quot;Cafe24 Ssurround&quot;,sans-serif;font-weight:400"><div class="s"><i>실화</i> 바탕!?</div><small>써라운드</small></button><button class="fnt" data-font="danjunghae" aria-pressed="false" style="font-family:&quot;Cafe24 Danjunghae&quot;,sans-serif;font-weight:400"><div class="s"><i>실화</i> 바탕!?</div><small>단정해</small></button><button class="fnt" data-font="dangdanghae" aria-pressed="false" style="font-family:&quot;Cafe24 Dangdanghae&quot;,sans-serif;font-weight:400"><div class="s"><i>실화</i> 바탕!?</div><small>당당해</small></button><button class="fnt" data-font="ohsquare" aria-pressed="false" style="font-family:&quot;Cafe24 Ohsquare&quot;,sans-serif;font-weight:400"><div class="s"><i>실화</i> 바탕!?</div><small>아네모네</small></button><button class="fnt" data-font="ssurround_air" aria-pressed="false" style="font-family:&quot;Cafe24 Ssurround Air&quot;,sans-serif;font-weight:400"><div class="s"><i>실화</i> 바탕!?</div><small>써라운드 에어</small></button><button class="fnt" data-font="ssukssuk" aria-pressed="false" style="font-family:&quot;Cafe24 Ssukssuk&quot;,sans-serif;font-weight:400"><div class="s"><i>실화</i> 바탕!?</div><small>쑥쑥</small></button><button class="fnt" data-font="simplehae" aria-pressed="false" style="font-family:&quot;Cafe24 Simplehae&quot;,sans-serif;font-weight:400"><div class="s"><i>실화</i> 바탕!?</div><small>심플해</small></button><button class="fnt" data-font="syongsyong" aria-pressed="false" style="font-family:&quot;Cafe24 Syongsyong&quot;,sans-serif;font-weight:400"><div class="s"><i>실화</i> 바탕!?</div><small>숑숑</small></button></div></div>
+        <div class="opt"><label>화면 틀</label>
+          <div class="seg" data-name="frame"><button aria-pressed="true" data-v="band">위 제목 띠 + 관심집중</button><button aria-pressed="false" data-v="plain">기본</button></div>
+          <div class="mini">위 제목 띠: 위쪽에 종이 질감 띠를 깔고 제목을 영상 내내 고정해요 (제일건강 스타일).</div></div>
         <div class="opt"><label>제목 크기</label>
           <div class="seg" data-name="hook"><button aria-pressed="false" data-v="작게">작게</button><button aria-pressed="true" data-v="보통">보통</button><button aria-pressed="false" data-v="크게">크게</button></div></div>
         <div class="opt subrow grp grp-yellow">
@@ -515,7 +525,7 @@ document.querySelectorAll(".seg").forEach(seg => seg.onclick = e => {
 });
 const pick = name => document.querySelector(`.seg[data-name="${name}"] [aria-pressed="true"]`).dataset.v;
 function savePrefs(){
-  prefs = { len:pick("len"), spd:pick("spd"), size:pick("size"), pos:pick("pos"), hook:pick("hook"), src:pick("src"), ltype:pick("ltype"), otype:pick("otype"), style:pick("style"), rights:pick("rights"), cat:pick("cat"), aimax:pick("aimax"), aud:pick("aud"), fact:$("factTg").getAttribute("aria-checked"), font:curFont(), audio:pick("audio"), fill:pick("fill"),
+  prefs = { len:pick("len"), spd:pick("spd"), size:pick("size"), pos:pick("pos"), hook:pick("hook"), src:pick("src"), ltype:pick("ltype"), otype:pick("otype"), style:pick("style"), rights:pick("rights"), cat:pick("cat"), aimax:pick("aimax"), aud:pick("aud"), frame:pick("frame"), fact:$("factTg").getAttribute("aria-checked"), font:curFont(), audio:pick("audio"), fill:pick("fill"),
             voice:curVoice(), review:$("reviewTg").getAttribute("aria-checked")==="true" };
   try { localStorage.setItem(SET, JSON.stringify(prefs)); } catch (e) {}
   updPrev(); updSrc();
@@ -629,7 +639,7 @@ $("reviewSw").onclick = () => { const t = $("reviewTg"); t.setAttribute("aria-ch
 // 저장된 설정 불러오기
 if (prefs.len) setSeg("len", prefs.len); if (prefs.spd) setSeg("spd", prefs.spd);
 if (prefs.size) setSeg("size", prefs.size); if (prefs.pos) setSeg("pos", prefs.pos);
-["hook","src","audio","fill","ltype","otype","style","rights","cat","aimax","aud"].forEach(k => { if (prefs[k]) setSeg(k, prefs[k]); });
+["hook","src","audio","fill","ltype","otype","style","rights","cat","aimax","aud","frame"].forEach(k => { if (prefs[k]) setSeg(k, prefs[k]); });
 $("reviewTg").setAttribute("aria-checked", prefs.review ? "true" : "false");
 if (prefs.fact) $("factTg").setAttribute("aria-checked", prefs.fact);
 $("factSw").onclick = () => { const t = $("factTg"); t.setAttribute("aria-checked", t.getAttribute("aria-checked") === "true" ? "false" : "true"); savePrefs(); };
@@ -646,7 +656,7 @@ renderVoices(); updPrev();
 function look(extra){
   const o = { sub_size:pick("size"), sub_pos:pick("pos"), hook_size:pick("hook"), audio:pick("audio"), fill:pick("fill"),
               style:pick("style"), rights:pick("rights"), src: ["real", "myimg"].includes(pick("src")) ? pick("src") : "",
-              cat:pick("cat"), aud: pick("aud") || "mid", fact: $("factTg").getAttribute("aria-checked") === "true" ? "1" : "", font: curFont(), ai_max: pick("aimax") || "4",
+              cat:pick("cat"), aud: pick("aud") || "mid", frame: pick("frame") || "band", fact: $("factTg").getAttribute("aria-checked") === "true" ? "1" : "", font: curFont(), ai_max: pick("aimax") || "4",
               brief: $("brief").value.trim() ? b64u($("brief").value.trim().slice(0, 500)) : "", ...(extra||{}) };
   return Object.entries(o).map(([k, v]) => `${k}=${v}`).join(";");
 }
@@ -657,6 +667,7 @@ function updSrc(){
   const stockLike = src === "stock" || src === "real";
   $("ownBox").hidden = !own; $("longBox").hidden = !lng; $("reviewSw").hidden = !stockLike; $("realNote").hidden = src !== "real";
   $("myImgBox").hidden = src !== "myimg";
+  if (src === "myimg" && !(clips && clips.length)) loadClips();
   $("mixBox").hidden = !((own && pick("otype") === "one") || (lng && pick("ltype") === "one"));
   $("topic").placeholder = src === "real" ? "예) 1947년 로즈웰 UFO 사건의 진실" : stockLike ? "예) 자기 전 스마트폰 30분이 몸에 주는 변화" : "주제 힌트 (비워두면 AI가 영상 보고 정해요)";
   if (own && clips === null) loadClips();
@@ -677,7 +688,44 @@ async function loadClips(){
     drawClips();
   } catch (e) { $("clips").innerHTML = `<div class="mini" style="color:var(--warn)">${esc(e.message)}</div>`; }
 }
+// 📱 내 폰 사진: 보관함의 사진을 썸네일로 보여주고 골라서 쓰기
+let myPicked = [];
+const thumbCache = {};
+async function thumb(c){                       // 비공개 보관함 사진을 출입증으로 불러와 미리보기
+  if (thumbCache[c.name]) return thumbCache[c.name];
+  try {
+    const r = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/media/${encodeURIComponent(c.paths.sort()[0])}?ref=${BR}`,
+      { headers: { Authorization: "Bearer " + token, Accept: "application/vnd.github.raw" } });
+    if (!r.ok) return "";
+    return (thumbCache[c.name] = URL.createObjectURL(await r.blob()));
+  } catch (e) { return ""; }
+}
+function drawMyPhotos(){
+  const imgs = (clips || []).filter(c => /\.(jpe?g|png|webp|heic)$/i.test(c.name));
+  myPicked = myPicked.filter(n => imgs.some(c => c.name === n));
+  $("myPhotos").innerHTML = imgs.length ? imgs.map(c => { const k = myPicked.indexOf(c.name);
+    return `<div data-mp="${esc(c.name)}" style="position:relative;aspect-ratio:3/4;border-radius:10px;overflow:hidden;background:var(--soft);cursor:pointer;border:3px solid ${k >= 0 ? "var(--accent)" : "transparent"}">
+      <img data-th="${esc(c.name)}" alt="" style="width:100%;height:100%;object-fit:cover;display:block">
+      ${k >= 0 ? `<span style="position:absolute;top:4px;left:4px;background:var(--accent);color:#fff;border-radius:50%;width:22px;height:22px;font-size:12px;display:flex;align-items:center;justify-content:center;font-weight:700">${k + 1}</span>` : ""}</div>`; }).join("")
+    : `<div class="mini" style="grid-column:1/-1">아직 올린 사진이 없어요.</div>`;
+  $("myPhotoSel").textContent = myPicked.length ? `${myPicked.length}장 골랐어요 · 만들기를 누르면 이 사진들로 대본을 써요` : "";
+  imgs.forEach(c => thumb(c).then(u => { const el = document.querySelector(`[data-th="${CSS.escape(c.name)}"]`); if (el && u) el.src = u; }));
+}
+$("myPhotos").addEventListener("click", e => {
+  const d = e.target.closest("[data-mp]"); if (!d) return;
+  const n = d.dataset.mp, k = myPicked.indexOf(n);
+  if (k >= 0) myPicked.splice(k, 1); else if (myPicked.length < 15) myPicked.push(n); else toast("한 번에 15장까지 고를 수 있어요");
+  drawMyPhotos();
+});
+$("myPhotoFile").onchange = async e => {
+  const fs = [...e.target.files]; if (!fs.length) return;
+  $("myPhotoMsg").textContent = `${fs.length}장 올리는 중… 화면을 켜두세요`;
+  try { await upload(fs); await loadClips(); $("myPhotoMsg").textContent = `✅ ${fs.length}장 올렸어요. 아래에서 쓸 사진을 골라주세요`; }
+  catch (er) { $("myPhotoMsg").textContent = er.message; }
+  e.target.value = "";
+};
 function drawClips(){
+  if ($("myPhotos")) drawMyPhotos();
   if (!clips || !clips.length) { $("clips").innerHTML = '<div class="mini">아직 올린 영상이 없어요. 아래에서 추가해주세요.</div>'; return; }
   $("clips").innerHTML = clips.map(c => { const k = picked.indexOf(c.name);
     return `<div class="clip" role="button" tabindex="0" data-n="${esc(c.name)}" aria-pressed="${k >= 0}">
@@ -891,7 +939,7 @@ $("moreIdeasTop").onclick = async () => {
 // 설정 칸을 종류별 색으로 구분
 (function colorGroups(){
   const map = [[/^분야|주 시청자/, "blue"], [/화면에 쓸 영상|AI 이미지|만들기 방식|영상 종류|이 영상은|원본 소리|빈 곳/, "orange"],
-               [/길이|목소리|말 속도/, "teal"], [/폰트|제목 크기|자막 크기|자막 위치/, "yellow"], [/해석 스타일|리뷰 관점/, "pink"]];
+               [/길이|목소리|말 속도/, "teal"], [/폰트|화면 틀|제목 크기|자막 크기|자막 위치/, "yellow"], [/해석 스타일|리뷰 관점/, "pink"]];
   document.querySelectorAll(".opt").forEach(o => {
     const l = o.querySelector(":scope > label"); if (!l) return;
     const m = map.find(([re]) => re.test(l.textContent.trim())); if (m) o.classList.add("grp", "grp-" + m[1]);
@@ -921,7 +969,8 @@ $("make").onclick = async () => {
     const review = src === "myimg" || ((src === "stock" || src === "real") && $("reviewTg").getAttribute("aria-checked") === "true");
     const au = $("artUrl").value.trim(), at = $("artText").value.trim();
     const article = (src === "stock" || src === "real") && (au || at);
-    await dispatch(article ? { topic, mode: "article", media: au ? "url::" + au : "text::" + b64e(at.slice(0, 30000)) } : own ? { topic, mode: pick("otype") === "hl" ? "long" : "own", media: picked.join("|"), credit: $("ownCredit").value.trim() }
+    await dispatch(article ? { topic, mode: "article", media: au ? "url::" + au : "text::" + b64e(at.slice(0, 30000)) }
+      : (src === "myimg" && myPicked.length) ? { topic, mode: "script", media: myPicked.join("|") } : own ? { topic, mode: pick("otype") === "hl" ? "long" : "own", media: picked.join("|"), credit: $("ownCredit").value.trim() }
       : lng ? { topic, mode: pick("ltype") === "hl" ? "long" : "own", media: url, credit: $("longCredit").value.trim() }
       : { topic, mode: review ? "script" : "full" });
     if (article) { $("artUrl").value = ""; $("artText").value = ""; }
