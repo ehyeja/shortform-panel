@@ -283,13 +283,16 @@ pre{white-space:pre-wrap;word-break:break-all;font-family:inherit;font-size:13px
             ② <b>확인·수정</b>을 열고 장면마다 <b>문구 복사</b> → 제미나이·ChatGPT 앱에 붙여넣어 이미지 만들기 → 사진첩에 저장<br>
             ③ 같은 화면에서 <b>＋ 이미지 올리기</b>로 올리고, 장면마다 쓸 이미지 고르기<br>
             ④ <b>이 대본으로 영상 만들기</b> → 이미지 + 목소리 + 자막으로 완성 (이미지 없는 장면은 무료 영상으로 채워요)</div>
-          <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--line)">
-            <b style="font-size:14px">📱 내 폰 사진 바로 쓰기 (선택)</b>
-            <div class="mini" style="margin:4px 0 8px">이미 갖고 있는 사진을 올리고 고르면, AI가 사진을 직접 보고 어울리는 장면에 넣어 대본을 써요.</div>
-            <label class="drop" style="margin:0"><input type="file" id="myPhotoFile" accept="image/*" multiple hidden><b>＋ 사진첩에서 사진 올리기</b><span id="myPhotoMsg">여러 장 한 번에 골라도 돼요</span></label>
-            <div id="myPhotos" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px"></div>
-            <div class="mini" id="myPhotoSel"></div>
+        </div>
+        <div class="src-box" id="photoBox" style="margin-top:10px">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+            <b style="font-size:14px">📱 내 사진 보관함 · 자동으로 골라 쓰기</b>
+            <button class="tg" id="autoPhotoTg" role="switch" aria-checked="true" aria-label="내 사진 자동으로 쓰기"></button>
           </div>
+          <div class="mini" style="margin:4px 0 8px">사진을 올려두기만 하면, 영상 만들 때 AI가 사진을 직접 보고 <b>주제와 어울리는 사진만</b> 골라 넣어요. 상관없는 사진은 쓰지 않아요.</div>
+          <label class="drop" style="margin:0"><input type="file" id="myPhotoFile" accept="image/*" multiple hidden><b>＋ 사진첩에서 사진 올리기</b><span id="myPhotoMsg">여러 장 한 번에 골라도 돼요</span></label>
+          <div id="myPhotos" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px"></div>
+          <div class="mini" id="myPhotoSel"></div>
         </div>
         <div class="mini" id="realNote" hidden>실화·사건·우주·연구 주제에 좋아요. <b>한국 공공 자료</b>(정책브리핑·국가기록원·e영상역사관 등 <b>공공누리 제1유형</b>)와 위키미디어 커먼즈·NASA의 <b>자유 이용 실제 사진·기록 영상</b>을 찾아 쓰고, 출처는 설명란에 자동으로 적어요.</div></div>
       <div class="src-box" id="longBox" hidden>
@@ -667,7 +670,8 @@ function updSrc(){
   const stockLike = src === "stock" || src === "real";
   $("ownBox").hidden = !own; $("longBox").hidden = !lng; $("reviewSw").hidden = !stockLike; $("realNote").hidden = src !== "real";
   $("myImgBox").hidden = src !== "myimg";
-  if (src === "myimg" && !(clips && clips.length)) loadClips();
+  $("photoBox").hidden = !["stock", "real", "myimg"].includes(src);
+  if (["stock", "real", "myimg"].includes(src) && !(clips && clips.length) && token) loadClips();
   $("mixBox").hidden = !((own && pick("otype") === "one") || (lng && pick("ltype") === "one"));
   $("topic").placeholder = src === "real" ? "예) 1947년 로즈웰 UFO 사건의 진실" : stockLike ? "예) 자기 전 스마트폰 30분이 몸에 주는 변화" : "주제 힌트 (비워두면 AI가 영상 보고 정해요)";
   if (own && clips === null) loadClips();
@@ -700,23 +704,28 @@ async function thumb(c){                       // 비공개 보관함 사진을 
     return (thumbCache[c.name] = URL.createObjectURL(await r.blob()));
   } catch (e) { return ""; }
 }
+function photoList(){ return (clips || []).filter(c => /\.(jpe?g|png|webp|heic)$/i.test(c.name)); }
 function drawMyPhotos(){
-  const imgs = (clips || []).filter(c => /\.(jpe?g|png|webp|heic)$/i.test(c.name));
-  myPicked = myPicked.filter(n => imgs.some(c => c.name === n));
-  $("myPhotos").innerHTML = imgs.length ? imgs.map(c => { const k = myPicked.indexOf(c.name);
-    return `<div data-mp="${esc(c.name)}" style="position:relative;aspect-ratio:3/4;border-radius:10px;overflow:hidden;background:var(--soft);cursor:pointer;border:3px solid ${k >= 0 ? "var(--accent)" : "transparent"}">
+  const imgs = photoList();
+  $("myPhotos").innerHTML = imgs.length ? imgs.map(c => `<div style="position:relative;aspect-ratio:3/4;border-radius:10px;overflow:hidden;background:var(--soft)">
       <img data-th="${esc(c.name)}" alt="" style="width:100%;height:100%;object-fit:cover;display:block">
-      ${k >= 0 ? `<span style="position:absolute;top:4px;left:4px;background:var(--accent);color:#fff;border-radius:50%;width:22px;height:22px;font-size:12px;display:flex;align-items:center;justify-content:center;font-weight:700">${k + 1}</span>` : ""}</div>`; }).join("")
+      <button data-pdel="${esc(c.name)}" aria-label="사진 삭제" style="position:absolute;top:4px;right:4px;width:26px;height:26px;border-radius:50%;border:0;background:rgba(0,0,0,.6);color:#fff;font-size:14px;cursor:pointer">✕</button></div>`).join("")
     : `<div class="mini" style="grid-column:1/-1">아직 올린 사진이 없어요.</div>`;
-  $("myPhotoSel").textContent = myPicked.length ? `${myPicked.length}장 골랐어요 · 만들기를 누르면 이 사진들로 대본을 써요` : "";
+  $("myPhotoSel").textContent = imgs.length ? `사진 ${imgs.length}장 · 영상마다 어울리는 사진만 자동으로 골라 써요 (최근 30장까지 살펴봐요)` : "";
   imgs.forEach(c => thumb(c).then(u => { const el = document.querySelector(`[data-th="${CSS.escape(c.name)}"]`); if (el && u) el.src = u; }));
 }
-$("myPhotos").addEventListener("click", e => {
-  const d = e.target.closest("[data-mp]"); if (!d) return;
-  const n = d.dataset.mp, k = myPicked.indexOf(n);
-  if (k >= 0) myPicked.splice(k, 1); else if (myPicked.length < 15) myPicked.push(n); else toast("한 번에 15장까지 고를 수 있어요");
-  drawMyPhotos();
+$("myPhotos").addEventListener("click", async e => {
+  const d = e.target.closest("[data-pdel]"); if (!d) return;
+  if (!confirm("이 사진을 보관함에서 지울까요?")) return;
+  const g = (clips || []).find(c => c.name === d.dataset.pdel);
+  d.disabled = true;
+  try { await commitMedia((g ? g.paths : [d.dataset.pdel]).map(p => ({ name: p, sha: null })), "사진 삭제"); toast("사진을 지웠어요"); loadClips(); }
+  catch (err) { toast(err.message); d.disabled = false; }
 });
+$("autoPhotoTg").onclick = () => { const t = $("autoPhotoTg"); t.setAttribute("aria-checked", t.getAttribute("aria-checked") === "true" ? "false" : "true"); savePrefs(); };
+function autoPhotos(){                  // 자동으로 살펴볼 사진 (최근 30장)
+  return $("autoPhotoTg").getAttribute("aria-checked") === "true" ? photoList().slice(0, 30).map(c => c.name) : [];
+}
 $("myPhotoFile").onchange = async e => {
   const fs = [...e.target.files]; if (!fs.length) return;
   $("myPhotoMsg").textContent = `${fs.length}장 올리는 중… 화면을 켜두세요`;
@@ -726,8 +735,9 @@ $("myPhotoFile").onchange = async e => {
 };
 function drawClips(){
   if ($("myPhotos")) drawMyPhotos();
-  if (!clips || !clips.length) { $("clips").innerHTML = '<div class="mini">아직 올린 영상이 없어요. 아래에서 추가해주세요.</div>'; return; }
-  $("clips").innerHTML = clips.map(c => { const k = picked.indexOf(c.name);
+  const vids = (clips || []).filter(c => !/\.(jpe?g|png|webp|heic|gif)$/i.test(c.name));   // 사진은 '내 사진 보관함'에 따로
+  if (!vids.length) { $("clips").innerHTML = '<div class="mini">아직 올린 영상이 없어요. 아래에서 추가해주세요.</div>'; return; }
+  $("clips").innerHTML = vids.map(c => { const k = picked.indexOf(c.name);
     return `<div class="clip" role="button" tabindex="0" data-n="${esc(c.name)}" aria-pressed="${k >= 0}">
       <span class="ck">${k >= 0 ? k + 1 : ""}</span><div><b>${esc(c.name)}</b><small>${(c.size / 1048576).toFixed(1)}MB</small></div>
       <button class="x" data-del="${esc(c.name)}" aria-label="삭제">삭제</button></div>`; }).join("");
@@ -970,7 +980,8 @@ $("make").onclick = async () => {
     const au = $("artUrl").value.trim(), at = $("artText").value.trim();
     const article = (src === "stock" || src === "real") && (au || at);
     await dispatch(article ? { topic, mode: "article", media: au ? "url::" + au : "text::" + b64e(at.slice(0, 30000)) }
-      : (src === "myimg" && myPicked.length) ? { topic, mode: "script", media: myPicked.join("|") } : own ? { topic, mode: pick("otype") === "hl" ? "long" : "own", media: picked.join("|"), credit: $("ownCredit").value.trim() }
+      : (src === "myimg") ? { topic, mode: "script", media: autoPhotos().join("|"), _look: { myphoto: autoPhotos().length ? "1" : "" } }
+      : ((src === "stock" || src === "real") && autoPhotos().length && !article) ? { topic, mode: review ? "script" : "full", media: autoPhotos().join("|"), _look: { myphoto: "1" } } : own ? { topic, mode: pick("otype") === "hl" ? "long" : "own", media: picked.join("|"), credit: $("ownCredit").value.trim() }
       : lng ? { topic, mode: pick("ltype") === "hl" ? "long" : "own", media: url, credit: $("longCredit").value.trim() }
       : { topic, mode: review ? "script" : "full" });
     if (article) { $("artUrl").value = ""; $("artText").value = ""; }
@@ -1246,7 +1257,9 @@ $("eGo").onclick = async () => {
       closeEditor(); toast("주문 완료! 8~10분 뒤 도착해요"); loadShips(); setTimeout(loadRuns, 4000); startPoll(); $("eGo").disabled = false; return;
     }
     await dispatch({ topic: sc.topic || sc.title, mode: ownEdit ? "own" : "full", script: b64e(JSON.stringify(sc)), draft: edit.draft || "",
-      ...(ownEdit ? { media: sc.media, credit: sc.credit || "", _look: { audio: sc.audio || "ai_mix", fill: sc.fill || "stock", ...reqLook() } } : { _look: { src: pick("src") === "real" ? "real" : "", ...reqLook() } }) });
+      ...(ownEdit ? { media: sc.media, credit: sc.credit || "", _look: { audio: sc.audio || "ai_mix", fill: sc.fill || "stock", ...reqLook() } } : (() => { const imgs = [...new Set(scenes.map(x => x.img).filter(Boolean))];   // 대본에 내 사진이 들어 있으면 같이 보내기
+          return imgs.length ? { media: imgs.join("|"), _look: { src: pick("src") === "real" ? "real" : "", myphoto: "1", ...reqLook() } }
+                             : { _look: { src: pick("src") === "real" ? "real" : "", ...reqLook() } }; })()) });
     if (edit.draft) { let l = []; try { l = JSON.parse(localStorage.getItem("sff_hidden") || "[]"); } catch (er) {} l.push(edit.draft); try { localStorage.setItem("sff_hidden", JSON.stringify(l)); } catch (er) {} }
     closeEditor(); toast("주문 완료! 8~10분 뒤 도착해요"); loadShips(); setTimeout(loadRuns, 4000); startPoll();
   } catch (err) { toast(err.message); }
