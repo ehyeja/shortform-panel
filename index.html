@@ -293,6 +293,10 @@ pre{white-space:pre-wrap;word-break:break-all;font-family:inherit;font-size:13px
           <label class="drop" style="margin:0"><input type="file" id="myPhotoFile" accept="image/*" multiple hidden><b>＋ 사진첩에서 사진 올리기</b><span id="myPhotoMsg">여러 장 한 번에 골라도 돼요</span></label>
           <div id="myPhotos" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px"></div>
           <div class="mini" id="myPhotoSel"></div>
+          <div id="photoDelBar" hidden style="display:flex;gap:8px;margin-top:8px">
+            <button class="pill light" id="delUsedPhotos" style="flex:1">✓ 사용한 사진만 삭제</button>
+            <button class="pill light" id="delAllPhotos" style="flex:1;color:var(--warn)">🗑 사진 전체 삭제</button>
+          </div>
         </div>
         <div class="mini" id="realNote" hidden>실화·사건·우주·연구 주제에 좋아요. <b>한국 공공 자료</b>(정책브리핑·국가기록원·e영상역사관 등 <b>공공누리 제1유형</b>)와 위키미디어 커먼즈·NASA의 <b>자유 이용 실제 사진·기록 영상</b>을 찾아 쓰고, 출처는 설명란에 자동으로 적어요.</div></div>
       <div class="src-box" id="longBox" hidden>
@@ -705,13 +709,18 @@ async function thumb(c){                       // 비공개 보관함 사진을 
   } catch (e) { return ""; }
 }
 function photoList(){ return (clips || []).filter(c => /\.(jpe?g|png|webp|heic)$/i.test(c.name)); }
+let usedPhotos = new Set();             // 이미 영상에 쓴 사진 (완성 영상 기록에서 모아요)
 function drawMyPhotos(){
   const imgs = photoList();
   $("myPhotos").innerHTML = imgs.length ? imgs.map(c => `<div style="position:relative;aspect-ratio:3/4;border-radius:10px;overflow:hidden;background:var(--soft)">
-      <img data-th="${esc(c.name)}" alt="" style="width:100%;height:100%;object-fit:cover;display:block">
+      <img data-th="${esc(c.name)}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;${usedPhotos.has(c.name) ? "opacity:.35" : ""}">
+      ${usedPhotos.has(c.name) ? `<span style="position:absolute;left:4px;bottom:4px;background:rgba(0,0,0,.65);color:#fff;font-size:11px;padding:2px 6px;border-radius:6px">✓ 사용함</span>` : ""}
       <button data-pdel="${esc(c.name)}" aria-label="사진 삭제" style="position:absolute;top:4px;right:4px;width:26px;height:26px;border-radius:50%;border:0;background:rgba(0,0,0,.6);color:#fff;font-size:14px;cursor:pointer">✕</button></div>`).join("")
     : `<div class="mini" style="grid-column:1/-1">아직 올린 사진이 없어요.</div>`;
-  $("myPhotoSel").textContent = imgs.length ? `사진 ${imgs.length}장 · 영상마다 어울리는 사진만 자동으로 골라 써요 (최근 30장까지 살펴봐요)` : "";
+  const fresh = imgs.filter(c => !usedPhotos.has(c.name)).length;
+  $("photoDelBar").hidden = !imgs.length; $("photoDelBar").style.display = imgs.length ? "flex" : "none";
+  $("delUsedPhotos").textContent = `✓ 사용한 사진만 삭제 (${imgs.length - fresh})`;
+  $("myPhotoSel").textContent = imgs.length ? `사진 ${imgs.length}장 (아직 안 쓴 사진 ${fresh}장) · 어울리는 사진만 골라 쓰고, 한 번 쓴 사진은 다시 안 써요` : "";
   imgs.forEach(c => thumb(c).then(u => { const el = document.querySelector(`[data-th="${CSS.escape(c.name)}"]`); if (el && u) el.src = u; }));
 }
 $("myPhotos").addEventListener("click", async e => {
@@ -722,9 +731,21 @@ $("myPhotos").addEventListener("click", async e => {
   try { await commitMedia((g ? g.paths : [d.dataset.pdel]).map(p => ({ name: p, sha: null })), "사진 삭제"); toast("사진을 지웠어요"); loadClips(); }
   catch (err) { toast(err.message); d.disabled = false; }
 });
+async function deletePhotos(list, label){
+  if (!list.length) { toast("지울 사진이 없어요"); return; }
+  if (!confirm(`${label} ${list.length}장을 보관함에서 지울까요? 되돌릴 수 없어요.`)) return;
+  $("delAllPhotos").disabled = $("delUsedPhotos").disabled = true;
+  try { await commitMedia(list.flatMap(c => c.paths).map(p => ({ name: p, sha: null })), `${label} 삭제`);
+        Object.keys(thumbCache).forEach(k => { if (list.some(c => c.name === k)) delete thumbCache[k]; });
+        toast(`${list.length}장을 지웠어요`); await loadClips(); }
+  catch (err) { toast(err.message); }
+  $("delAllPhotos").disabled = $("delUsedPhotos").disabled = false;
+}
+$("delAllPhotos").onclick = () => deletePhotos(photoList(), "사진 전체");
+$("delUsedPhotos").onclick = () => deletePhotos(photoList().filter(c => usedPhotos.has(c.name)), "사용한 사진");
 $("autoPhotoTg").onclick = () => { const t = $("autoPhotoTg"); t.setAttribute("aria-checked", t.getAttribute("aria-checked") === "true" ? "false" : "true"); savePrefs(); };
 function autoPhotos(){                  // 자동으로 살펴볼 사진 (최근 30장)
-  return $("autoPhotoTg").getAttribute("aria-checked") === "true" ? photoList().slice(0, 30).map(c => c.name) : [];
+  return $("autoPhotoTg").getAttribute("aria-checked") === "true" ? photoList().filter(c => !usedPhotos.has(c.name)).slice(0, 30).map(c => c.name) : [];
 }
 $("myPhotoFile").onchange = async e => {
   const fs = [...e.target.files]; if (!fs.length) return;
@@ -1052,6 +1073,8 @@ async function loadShips(){
       all = all.concat(page); if (page.length < 100) break;
     }
     all.forEach(r => { r._t = relTime(r); r.created_at = new Date(r._t).toISOString(); });
+    usedPhotos = new Set(all.flatMap(r => ((/<!--USEDPHOTOS:([^>]*)-->/.exec(r.body || "") || [])[1] || "").split("|").filter(Boolean)));
+    if ($("myPhotos") && clips) drawMyPhotos();
     all.sort((a, b) => b._t - a._t);              // 항상 최근에 만든 것이 맨 위
     const sm = all.find(r => r.tag_name === "voice-samples");
     samples = {}; (sm ? sm.assets : []).forEach(a => samples[a.name.replace(/\.mp3$/, "")] = a.url);
