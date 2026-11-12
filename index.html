@@ -379,6 +379,21 @@ pre{white-space:pre-wrap;word-break:break-all;font-family:inherit;font-size:13px
       <div class="msg" id="makeMsg" role="status"></div>
     </section>
 
+    <!-- 📖 동화책 영상 -->
+    <section class="card" id="storyCard">
+      <details id="storyBox"><summary style="list-style:none;cursor:pointer"><h2 style="display:inline">📖 동화책 영상 만들기</h2> <span class="mini">펼치기 ▾</span></summary>
+        <div class="mini" style="margin:8px 0 10px;line-height:1.7">직접 만든 동화책 페이지를 올리면, AI가 <b>페이지 글을 읽어서</b> 쪽 번호 순서대로 <b>동화 구연</b>하듯 읽어주는 영상으로 만들어요. 페이지는 잘리지 않게 전체가 보이고, 넘길 때 부드럽게 바뀌어요.</div>
+        <label class="drop" style="margin:0"><input type="file" id="storyFile" accept="image/*" multiple hidden><b>＋ 동화책 페이지 올리기</b><span id="storyMsg">모든 페이지를 한 번에 골라주세요 (순서는 쪽 번호로 자동 정리)</span></label>
+        <div id="storyPages" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px"></div>
+        <div class="mini" id="storyInfo"></div>
+        <div class="mini" style="margin-top:6px">목소리는 아래 설정의 <b>목소리</b>를 써요. 동화는 <b>여성 따뜻</b>을 추천해요.</div>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="primary" id="storyGo" style="flex:2;margin:0">📖 동화 영상 만들기</button>
+          <button class="pill light" id="storyClear" style="flex:1">페이지 전체 삭제</button>
+        </div>
+      </details>
+    </section>
+
     <!-- 제작 보류 -->
     <div id="holdWrap" hidden>
       <div class="sec"><h3>⏸ 제작 보류</h3></div>
@@ -708,8 +723,45 @@ async function thumb(c){                       // 비공개 보관함 사진을 
     return (thumbCache[c.name] = URL.createObjectURL(await r.blob()));
   } catch (e) { return ""; }
 }
-function photoList(){ return (clips || []).filter(c => /\.(jpe?g|png|webp|heic)$/i.test(c.name)); }
+function photoList(){ return (clips || []).filter(c => /\.(jpe?g|png|webp|heic)$/i.test(c.name) && !c.name.startsWith("story-")); }
+function storyList(){ return (clips || []).filter(c => c.name.startsWith("story-")).sort((a, b) => a.name.localeCompare(b.name)); }
 let usedPhotos = new Set();             // 이미 영상에 쓴 사진 (완성 영상 기록에서 모아요)
+function drawStory(){
+  const ps = storyList();
+  $("storyPages").innerHTML = ps.length ? ps.map(c => `<div style="position:relative;aspect-ratio:9/16;border-radius:8px;overflow:hidden;background:var(--soft)">
+      <img data-th="${esc(c.name)}" alt="" style="width:100%;height:100%;object-fit:cover;display:block">
+      <button data-sdel="${esc(c.name)}" aria-label="페이지 삭제" style="position:absolute;top:4px;right:4px;width:24px;height:24px;border-radius:50%;border:0;background:rgba(0,0,0,.6);color:#fff;cursor:pointer">✕</button></div>`).join("")
+    : `<div class="mini" style="grid-column:1/-1">아직 올린 페이지가 없어요.</div>`;
+  $("storyInfo").textContent = ps.length ? `${ps.length}쪽 · 만들기를 누르면 쪽 번호 순서로 읽어요` : "";
+  ps.forEach(c => thumb(c).then(u => { const el = document.querySelector(`#storyPages [data-th="${CSS.escape(c.name)}"]`); if (el && u) el.src = u; }));
+}
+$("storyBox").addEventListener("toggle", e => { if (e.target.open && token) loadClips(); });
+$("storyFile").onchange = async e => {
+  const fs = [...e.target.files]; if (!fs.length) return;
+  $("storyMsg").textContent = `${fs.length}쪽 올리는 중… 화면을 켜두세요`;
+  upPrefix = "story-";
+  try { await upload(fs); await loadClips(); $("storyMsg").textContent = `✅ ${fs.length}쪽 올렸어요`; }
+  catch (er) { $("storyMsg").textContent = er.message; }
+  upPrefix = ""; e.target.value = "";
+};
+$("storyPages").addEventListener("click", async e => {
+  const d = e.target.closest("[data-sdel]"); if (!d) return;
+  const g = storyList().find(c => c.name === d.dataset.sdel); if (!g) return;
+  try { await commitMedia(g.paths.map(p => ({ name: p, sha: null })), "동화 페이지 삭제"); loadClips(); } catch (er) { toast(er.message); }
+});
+$("storyClear").onclick = async () => {
+  const ps = storyList(); if (!ps.length) return;
+  if (!confirm(`동화책 페이지 ${ps.length}쪽을 모두 지울까요?`)) return;
+  try { await commitMedia(ps.flatMap(c => c.paths).map(p => ({ name: p, sha: null })), "동화 페이지 전체 삭제"); toast("지웠어요"); loadClips(); } catch (er) { toast(er.message); }
+};
+$("storyGo").onclick = async () => {
+  const ps = storyList(); if (!ps.length) { toast("먼저 동화책 페이지를 올려주세요"); return; }
+  $("storyGo").disabled = true;
+  try { await dispatch({ topic: "동화책 영상", mode: "story", media: ps.map(c => c.name).join("|") });
+        toast("주문 완료! 쪽수에 따라 5~10분 뒤 완성된 영상에 도착해요"); setTimeout(loadRuns, 4000); startPoll(); }
+  catch (er) { toast(er.message); }
+  $("storyGo").disabled = false;
+};
 function drawMyPhotos(){
   const imgs = photoList();
   $("myPhotos").innerHTML = imgs.length ? imgs.map(c => `<div style="position:relative;aspect-ratio:3/4;border-radius:10px;overflow:hidden;background:var(--soft)">
@@ -756,7 +808,8 @@ $("myPhotoFile").onchange = async e => {
 };
 function drawClips(){
   if ($("myPhotos")) drawMyPhotos();
-  const vids = (clips || []).filter(c => !/\.(jpe?g|png|webp|heic|gif)$/i.test(c.name));   // 사진은 '내 사진 보관함'에 따로
+  if ($("storyPages")) drawStory();
+  const vids = (clips || []).filter(c => !/\.(jpe?g|png|webp|heic|gif)$/i.test(c.name) && !c.name.startsWith("story-"));   // 사진은 '내 사진 보관함'에 따로
   if (!vids.length) { $("clips").innerHTML = '<div class="mini">아직 올린 영상이 없어요. 아래에서 추가해주세요.</div>'; return; }
   $("clips").innerHTML = vids.map(c => { const k = picked.indexOf(c.name);
     return `<div class="clip" role="button" tabindex="0" data-n="${esc(c.name)}" aria-pressed="${k >= 0}">
@@ -776,10 +829,11 @@ async function commitMedia(changes, message){
   else await gh("/git/refs", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ ref:`refs/heads/${BR}`, sha: commit.sha }) });
 }
 const readB64 = f => new Promise((ok, bad) => { const r = new FileReader(); r.onload = () => ok(String(r.result).split(",")[1]); r.onerror = () => bad(new Error("파일을 읽지 못했어요")); r.readAsDataURL(f); });
+let upPrefix = "";                            // 동화책 페이지는 'story-'로 시작하게 (내 사진 보관함과 섞이지 않게)
 function safeName(f, i){
   const d = new Date(), p = n => String(n).padStart(2, "0");
   const ext = (f.name.match(/\.[A-Za-z0-9]{2,4}$/) || [".mp4"])[0].toLowerCase();
-  return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}-${i + 1}${ext}`;
+  return `${upPrefix}${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}-${String(i + 1).padStart(2, "0")}${ext}`;
 }
 // 올리기 진행률을 보여주는 업로드 (fetch는 진행률을 못 보여줘서 XHR 사용)
 function postBlob(b64, onProg){
